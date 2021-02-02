@@ -1,1 +1,1 @@
-printf "你好 猫音首"
+printf "hello, cat sound beast"
