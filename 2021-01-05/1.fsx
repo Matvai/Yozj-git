@@ -1,1 +1,1 @@
-printf "hello, cat sound beast"
+printf "猫音首是鳄鱼，我不是鳄鱼。"
