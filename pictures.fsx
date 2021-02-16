@@ -16,7 +16,7 @@ module List =
         |a::b, c::d -> (x a c)::map2safe x b d
 
 let equalizer list =
-    let max = List.max (List.map (fun x -> String.length x) list) 
+    let max = List.max (List.map String.length list) 
     List.map (fun x -> x + (String.replicate (max - String.length x) " ")) list
 
 let stringToList (s: string) = 
@@ -43,10 +43,14 @@ let equaloiser list1 list2 =
             List.append list1 extraLines
 
 let stringOverlay s1 s2 =
-    listToString (List.map2 (fun x y -> if x = ' ' then y else x) (stringToList s1) (stringToList s2))
+    let [x; y] = equalizer [s1; s2]
+    listToString (List.map2 (fun a b -> if a = ' ' then b else a) (stringToList x) (stringToList y))
 
 stringOverlay "murch is a murch    " "murch is a crocodile"
 
+equalizer ["abc"; "xyz123"]
+
+let [x; y] = equalizer ["abc"; "xyz123"]
 
 let rec prunt picture =
     match picture with
@@ -57,14 +61,14 @@ let rec prunt picture =
         let pb' = prunt b
         let pa = if List.length pa' > List.length pb' then pa' else equaloiser pa' pb'
         let pb = if List.length pb' > List.length pa' then pb' else equaloiser pb' pa'
-        equalizer (List.map2safe (fun x y -> x + y) pa pb)
+        equalizer (List.map2safe (+) pa pb)
     |Vertical (a, b) -> equalizer (List.append (prunt a) (prunt b))
     |FlipVertical a -> List.rev (prunt a)
     |FlipHorizontal a -> List.map String.rev (prunt a)
     |Rotate a -> 
         let resultLength = String.length (List.head (prunt a))
         List.rev (List.map (fun x -> listToString (List.map (fun (y: string) -> y.[x-1]) (prunt a))) [1..resultLength])
-    |Overlay (a, b) -> [""]
+    |Overlay (a, b) -> List.map2 stringOverlay (prunt a) (prunt b)
 
 let rec print picture = 
     let list = prunt picture
@@ -77,6 +81,15 @@ let stringPicture x =
         |a::b -> 
             Beside (Char a, stringPicture2 b)
     stringPicture2 (stringToList x)
+
+let mic = (Vertical (stringPicture "murch", (Vertical (stringPicture "is__", stringPicture "a      dile"))))
+let minc = (Vertical (stringPicture "murch", (Vertical (stringPicture "isnt", stringPicture "a croc"))))
+let zz = Vertical (Blank, Vertical (Blank, stringPicture "      O"))
+
+print (Overlay (Overlay (mic, minc), zz))
+
+let x = (4, 2)
+let y = "matvey", "croc"
 
 let square = 
     Vertical(
