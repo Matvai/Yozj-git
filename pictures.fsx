@@ -88,21 +88,10 @@ let zz = Vertical (Blank, Vertical (Blank, stringPicture "      O"))
 
 print (Overlay (Overlay (mic, minc), zz))
 
-let x = (4, 2)
-let y = "matvey", "croc"
+let printThis x = printfn "%d" x
 
-let square = 
-    Vertical(
-        stringPicture "---",
-        Vertical(stringPicture "xxx", stringPicture "---")
-    )
+let printThis_x2 x = 
+    printThis x
+    printThis x
 
-let pic = Beside(square, Beside(Rotate square, Rotate (Rotate square)))
-let pic2 = Beside(Rotate square, Beside(square, Rotate square))
-
-let p2 = Vertical(pic, pic2)
-let p3 = Beside (p2, Rotate p2)
-let p4 = Beside(p3, FlipHorizontal p3)
-
-System.Console.Clear()
-print (Vertical (p4, FlipVertical p4))
+printThis_x2 42
