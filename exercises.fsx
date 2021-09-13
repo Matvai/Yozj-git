@@ -1,28 +1,31 @@
-type T<'a> = A of 'a * T<'a> | B
+let f spisok =
+    let rec g spisok a =
+        match spisok with
+        |h::t -> g t (h + a)
+        |[] -> a
+    let b = g spisok 0
+    b
 
-let t1 = A (42, B)
-let t2 = A (5, t1)
-let t3 = A (1, A (2, A(3, B)))
+let rec f' lst = 
+    match lst with
+    | [] -> 0
+    | h::t -> h + f t
 
-let rec f t = 
-    match t with
-    | B -> ()
-    | A (x, y) ->
-        printfn "%A" x
-        f y
+let fu spisok =
+    let rec g spisok a =
+        match spisok with
+        |h::t -> g t (h * a)
+        |[] -> a
+    g spisok 1
 
-// -------------------------------------------------
+let rec g spisk =
+    match spisk with
+    |[] -> []
+    |h::t -> h + 5::g t
+    
+let rec i spsok =
+    match spsok with
+    |[] -> []
+    |h::t -> h * 2::i t
 
-type []<'a> = :: of 'a * T<'a> | []
-
-let t1 = :: (42, [])
-let t2 = :: (5, t1)
-let t3 = :: (1, :: (2, ::(3, [])))
-
-let rec f t = 
-    match t with
-    | [] -> ()
-    | :: (x, y) ->
-        printfn "%A" x
-        f y
-
+i [21; 210; 42] 
