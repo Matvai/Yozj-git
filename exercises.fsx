@@ -98,3 +98,18 @@ let optionMap f n =
 optionMap (fun x -> x * 2) (Some 42)
 
 optionMap add5 (Some (Some 42))
+
+let optionToList o =
+    match o with
+    |Some x -> [x]
+    |None -> []
+
+
+let listToOption l =
+    match l with
+    |[a] -> Some a
+    |_ -> None
+
+listToOption [42;21]
+
+optionToList (Some 42)
