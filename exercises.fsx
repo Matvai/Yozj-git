@@ -12,7 +12,7 @@ let rec min l =
 
 let rec remove e l =
     match l with
-    |a::b -> if a = e then remove e b else a::remove e b 
+    |a::b -> if a = e then b else a::remove e b 
     |[] -> []
 
 let rec sort l =
@@ -26,7 +26,7 @@ let rec minBy f l =
     |[a] -> Some a
     |[] -> None
 
-let rec sortBy f l =
+let rec sortBy f l = // O(N^2)
     match minBy f l with
     |Some x -> x::sortBy f (remove x l)
     |None -> []
@@ -38,10 +38,10 @@ min (["мурч крокодил";"ёж крокодил"] : string list)
 
 sort [3.1415926;21.0;42.0;5.25;10.5;84.0;168.0;2.7]
 
-String.length "4242424242424242"
+String.length "424242424242424242424242424242424242424242"
 
 sortBy String.length ["a"; "b"; "abc"; "ab"; "x"] 
 
 remove 36 [42;42;36;42;36;36;42]
 
-minBy f [42;42;42;50]
+sortBy id [1;4;3;2;6;42;42;42;24;6]
