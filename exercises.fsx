@@ -28,7 +28,8 @@ let gol cell cells =
     else if n = 2 then AsItWas 
     else Lives
 
-let createCell cell cells =
+/// Возвращает список всех соседей клетки cell, которые будут живы на следующем ходу
+let livingNeighbors cell cells =
     filterNeighbors cell
     |> List.choose (fun x -> 
         match gol x cells with
@@ -37,45 +38,58 @@ let createCell cell cells =
         |_ -> None
         )
 
-let createAllCells cells =
+/// Возвращает список всех живых клеток в следующем ходу
+let aliveCellsList cells =
     cells
-    |> List.collect (fun x -> createCell x cells)
+    |> List.collect (fun x -> livingNeighbors x cells)
     |> List.distinct
+List.collect (fun x -> [x;42;x]) [43;44;23]
+// let printGOL cells =
+//     let rec printGOL2 cells x y =
+//         if y < 10 then
+//             match List.contains (x, y) cells, x with
+//             |true, 10 -> printfn "1"; printGOL2 cells  1 (y + 1)
+//             |false, 10 -> printfn "0"; printGOL2 cells  1 (y + 1)
+//             |true, _ -> printf "1"; printGOL2 cells  (x + 1) y
+//             |false, _ -> printf "0"; printGOL2 cells  (x + 1) y
+//     printGOL2 cells 1 1
+//     ()
 
-let printGOL cells =
-    let rec printGOL2 cells x y =
-        if y < 10 then
-            match List.contains (x, y) cells, x with
-            |true, 10 -> printfn "1"; printGOL2 cells  1 (y + 1)
-            |false, 10 -> printfn "0"; printGOL2 cells  1 (y + 1)
-            |true, _ -> printf "1"; printGOL2 cells  (x + 1) y
-            |false, _ -> printf "0"; printGOL2 cells  (x + 1) y
-    printGOL2 cells 1 1
-    ()
+// let printGOLBetter cells =
+//     let rec printGOL2 cells x y =
+//         if y < 10 then
+//             printf (if List.contains (x, y) cells then "1" else "0")
+//             if x >= 10 then printfn ""; printGOL2 cells 1 (y + 1)
+//             else printGOL2 cells  (x + 1) y
+//     printGOL2 cells 1 1
+//     ()
 
-let printGOLBetter cells =
-    let rec printGOL2 cells x y =
-        if y < 10 then
-            printf (if List.contains (x, y) cells then "1" else "0")
-            if x >= 10 then printfn ""; printGOL2 cells 1 (y + 1)
-            else printGOL2 cells  (x + 1) y
-    printGOL2 cells 1 1
-    ()
-
-
-let printGOLEvenBetter cells =
-    for y in 1..10 do
-        for x in 1..10 do
+let printGOL cells area =
+    for y in 1..area do
+        for x in 1..area do
             printf (if List.contains (x, y) cells then "1" else "0")
         printfn ""
 
-printGOLEvenBetter [1,1;1,3;1,6;2,5;4,4;7,6]
+let x = [1,1;1,3;1,6;2,5;4,4;7,6;1,4;4,5;6,7;10,10;9,10;9,9;8,10]
+
+printGOL x 25
+
+printGOL (aliveCellsList x) 25
+
+let rec gameOfLifeExe cells area pauseTime:unit =
+    let x = aliveCellsList cells
+    printGOL x area
+    printfn "__________"
+    System.Threading.Thread.Sleep (pauseTime * 1000)
+    gameOfLifeExe x area pauseTime
+
+gameOfLifeExe x 15 3
 
 let cc = [42,42; 41,42; 44,42; 42,41; 41,43]
 
 createAllCells cc
 
-createCell (42,42) cc
+livingNeighbors (42,42) cc
 
 filterNeighbors (42,42)
 
