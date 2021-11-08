@@ -67,33 +67,32 @@ List.collect (fun x -> [x;42;x]) [43;44;23]
 let printGOL cells area =
     for y in 1..area do
         for x in 1..area do
-            printf (if List.contains (x, y) cells then "1" else "0")
+            printf (if List.contains (x, y) cells then "\x1B[38;2;255;0;0m#\x1B[39m" else " ")
         printfn ""
 
-let x = [1,1;1,3;1,6;2,5;4,4;7,6;1,4;4,5;6,7;10,10;9,10;9,9;8,10]
+let shape1 = 
+    [
+        2,6;2,7;3,6;3,7;
+        14,4;15,4;13,5;12,6;12,7;12,8;13,9;14,10;15,10;
+        16,7;17,5;18,6;18,7;18,8;19,7;18,9;
+        22,4;22,5;22,6;23,4;23,5;23,6;
+        24,3;24,7;26,2;26,3;26,7;26,8;
+        36,4;36,5;37,4;37,5
+    ] 
+    |> List.map (fun (x, y) -> x, y+12)
 
-printGOL x 25
-
-printGOL (aliveCellsList x) 25
+// printfn "\x1B[38;2;200;100;200mhello\x1B[39m goodbye"
 
 let rec gameOfLifeExe cells area pauseTime:unit =
     let x = aliveCellsList cells
     printGOL x area
     printfn "__________"
-    System.Threading.Thread.Sleep (pauseTime * 1000)
+    System.Threading.Thread.Sleep (pauseTime * 100)
     gameOfLifeExe x area pauseTime
 
-gameOfLifeExe x 15 3
 
-let cc = [42,42; 41,42; 44,42; 42,41; 41,43]
+let shape2 = [15,15; 16,15; 14,16; 15,16; 15,17]
 
-createAllCells cc
+let shape3 = [15,15; 16,15; 14,15; 17,15; 13,15; 16,16; 14,16; 16,14; 14,14; 15,16; 15,14; 15,17; 15,13]
 
-livingNeighbors (42,42) cc
-
-filterNeighbors (42,42)
-
-List.choose (fun x -> if x < 3 then Some x else None) [1;2;3;4;5;6]
-
-let f x = x + 10
-let y = f 5
+gameOfLifeExe shape2 15 20
