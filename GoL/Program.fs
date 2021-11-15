@@ -22,21 +22,34 @@ let main argv =
             if z.BackColor = Color.Black 
             then Some (x, y)
             else None
-            ) 
+            )
+    // This function changes the color of all panels corresponding 
+    // to alive coordinates to black and all panels corresponding 
+    // to dead coordinates to white
     let newPanels list =
         panels |> List.iter (fun (x, y, z) -> 
             if List.contains (x, y) list
             then z.BackColor <- Color.Black
             else z.BackColor <- Color.White
-            ) // Translate the list of coordinates back to window coordinates Mutate the correct panels
+            )
 
-    let button = new Button(Left = 9, Top = 9, Width = 32, Height = 16)
-    button.Click.Add (fun _ -> window.Text <- "мурч крокодил")
-    button.Click.Add (fun _ -> 
+    let timer = new Timer()
+    timer.Interval <- 100
+    timer.Enabled <- false
+    timer.Tick.Add (fun _ -> 
         newCoordinates ()
         |> TheBrain.aliveCellsList
         |> newPanels
     )
+    
+    let button = new Button(Left = 0, Top = 0, Width = 63, Height = 32, Text = "Push to start")
+    button.Click.Add (fun _ -> window.Text <- "мурч крокодил")
+    button.Click.Add (fun _ -> 
+        if button.Text = "Push to start"
+        then button.Text <- "Push to Stop"
+        else button.Text <- "Push to Start"
+        )
+    button.Click.Add (fun _ -> timer.Enabled <- not timer.Enabled) 
     window.Controls.Add button
 
     Application.Run window
