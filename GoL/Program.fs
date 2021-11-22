@@ -7,7 +7,7 @@ let main argv =
     let addButtons () =
         [ for y in 0..31 do
             for x in 0..63 do
-                let z = new Panel(BackColor = Color.White, Left = x * 32 + 1, Top = y * 32 + 65, Width = 32, Height = 32)
+                let z = new Panel(BackColor = Color.White, Left = x * 32 + 1, Top = y * 32 + 33, Width = 32, Height = 32)
                 z.Click.Add (fun _ -> if z.BackColor = Color.White
                                         then z.BackColor <- Color.Black
                                         else z.BackColor <- Color.White)
@@ -41,23 +41,48 @@ let main argv =
         |> TheBrain.aliveCellsList
         |> newPanels
     )
-    
-    let button = new Button(Left = 0, Top = 0, Width = 63, Height = 32, Text = "Push to start")
-    button.Click.Add (fun _ -> window.Text <- "мурч крокодил")
-    button.Click.Add (fun _ -> 
-        if button.Text = "Push to start"
-        then button.Text <- "Push to Stop"
-        else button.Text <- "Push to Start"
+    let clearButton = new Button(Left = 64, Top = 0, Width = 64, Height = 32, Text = "Clear")
+    clearButton.Click.Add (fun _ -> newPanels [])
+    let onOffButton = new Button(Left = 0, Top = 0, Width = 64, Height = 32, Text = "Push to start")
+    onOffButton.Click.Add (fun _ -> window.Text <- "мурч крокодил")
+    onOffButton.Click.Add (fun _ ->
+        if timer.Enabled
+        then onOffButton.Text <- "Push to start"; timer.Enabled <- false
+        else onOffButton.Text <- "Push to stop";timer.Enabled <- true
         )
-    button.Click.Add (fun _ -> timer.Enabled <- not timer.Enabled) 
-    window.Controls.Add button
-
+    let loadButton = new Button(Left = 128, Top= 0, Width = 64, Height = 32, Text = "Load file")
+    loadButton.Click.Add (fun _ -> 
+        "C:/Users/matve/mice-coding/GoL/file.txt"
+        |> Files.loadCoordinatesFromFile
+        |> newPanels
+        )
+    let gliderButton = new Button(Left = 192, Top= 0, Width = 64, Height = 32, Text = "Glider")
+    gliderButton.Click.Add (fun _ -> 
+        "C:/Users/matve/mice-coding/GoL/glider.txt"
+        |> Files.loadCoordinatesFromFile
+        |> newPanels
+        )
+    let acornButton = new Button(Left = 256, Top= 0, Width = 64, Height = 32, Text = "Acorn")
+    acornButton.Click.Add (fun _ -> 
+        "C:/Users/matve/mice-coding/GoL/acorn.txt"
+        |> Files.loadCoordinatesFromFile
+        |> newPanels
+        )
+    let gosperGliderGunButton = new Button(Left = 320, Top= 0, Width = 64, Height = 32, Text = "Gun")
+    gosperGliderGunButton.Click.Add (fun _ -> 
+        "C:/Users/matve/mice-coding/GoL/gosperGliderGun.txt"
+        |> Files.loadCoordinatesFromFile
+        |> newPanels
+        )
+    let closeButton = new Button(Left = 384, Top= 0, Width = 64, Height = 32, Text = "Quit game")
+    closeButton.Click.Add (fun _ -> window.Close())
+    window.Controls.Add closeButton
+    window.Controls.Add gosperGliderGunButton
+    window.Controls.Add acornButton
+    window.Controls.Add gliderButton
+    window.Controls.Add loadButton
+    window.Controls.Add onOffButton
+    window.Controls.Add clearButton
+    window.WindowState <- FormWindowState.Maximized
     Application.Run window
     0 // return an integer exit code
-
-// Get a list of coordinates for all the black panels
-// Translate the coordinates
-// Give aliveCellsList the list of translated coordinates
-// Get a result back
-// Translate the list of coordinates back to window coordinates
-// Give the list to another not yet existent function in order to mutate the correct panels
