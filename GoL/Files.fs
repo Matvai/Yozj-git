@@ -14,6 +14,13 @@ let parseIntPairList (s: string) =
     |> Array.map parseIntPair
     |> List.ofArray
 
+let rec formatCoordinates (l: (int*int) list) =
+    let lst = l |> List.map (fun (a, b) -> sprintf "%d,%d" a b)
+    "[" + System.String.Join(";", lst) + "]"
+
+let saveCoordinatesToFile file list =
+    System.IO.File.WriteAllText (file, (formatCoordinates list))
+
 // Reads the list of coordinates from a given file
 let loadCoordinatesFromFile file =
     File.ReadAllText file

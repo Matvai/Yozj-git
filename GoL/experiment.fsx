@@ -1,5 +1,8 @@
 open System.IO
+File.WriteAllText ("file.txt", "murch crocodile")
 let filetext = File.ReadAllText "file.txt"
+
+firstTwo [1;2;3;4]
 
 "4uyhbuy".[0]
 

@@ -1,9 +1,16 @@
 module Main
 open System.Windows.Forms
 open System.Drawing
+
+let firstTwo l =
+    match l with
+    | x::y::_ -> [x;y]
+    | x::_ -> [x]
+    | [] -> []
+
 [<EntryPoint>]
 let main argv =
-    let window = new Form(Text = "флавий крокодил")
+    let window = new Form(Text = "Game of Life")
     let addButtons () =
         [ for y in 0..31 do
             for x in 0..63 do
@@ -15,6 +22,8 @@ let main argv =
                 yield (x, y, z)
         ]
     let panels = addButtons ()
+
+    //IMPORTANT FUNCTIONS
 
     // This function returns a pair list of coordinates for all the black panels derived from a triple list of all panels and their coordinates
     let newCoordinates () = 
@@ -33,49 +42,79 @@ let main argv =
             else z.BackColor <- Color.White
             )
 
+    //BUTTONS AND TIMERS
+
+    let score = new Label(Left = 664, Top = 10, Width = 128, Height = 32, Text = "Score: 0")
     let timer = new Timer()
     timer.Interval <- 100
     timer.Enabled <- false
+    let mutable previousCoordinates = []
+    let mutable previousScore = 0
+    timer.Tick.Add (fun _ -> 
+        let cc = newCoordinates ()
+        if List.contains cc previousCoordinates then 
+            previousScore <- 0
+        else 
+            previousScore <- previousScore + 1
+        score.Text <- sprintf "Score: %d" previousScore 
+        previousCoordinates <- cc :: firstTwo previousCoordinates
+        )
     timer.Tick.Add (fun _ -> 
         newCoordinates ()
         |> TheBrain.aliveCellsList
         |> newPanels
-    )
-    let clearButton = new Button(Left = 64, Top = 0, Width = 64, Height = 32, Text = "Clear")
-    clearButton.Click.Add (fun _ -> newPanels [])
+        )
     let onOffButton = new Button(Left = 0, Top = 0, Width = 64, Height = 32, Text = "Push to start")
-    onOffButton.Click.Add (fun _ -> window.Text <- "мурч крокодил")
     onOffButton.Click.Add (fun _ ->
         if timer.Enabled
         then onOffButton.Text <- "Push to start"; timer.Enabled <- false
-        else onOffButton.Text <- "Push to stop";timer.Enabled <- true
+        else onOffButton.Text <- "Push to stop"; timer.Enabled <- true
         )
-    let loadButton = new Button(Left = 128, Top= 0, Width = 64, Height = 32, Text = "Load file")
+    let clearButton = new Button(Left = 64, Top = 0, Width = 64, Height = 32, Text = "Clear")
+    clearButton.Click.Add (fun _ -> newPanels [])
+    clearButton.Click.Add (fun _ -> onOffButton.Text <- "Push to start"; timer.Enabled <- false)
+    let loadButton = new Button(Left = 128, Top= 0, Width = 64, Height = 32, Text = "Load")
     loadButton.Click.Add (fun _ -> 
         "C:/Users/matve/mice-coding/GoL/file.txt"
         |> Files.loadCoordinatesFromFile
         |> newPanels
+        previousScore <- 0
         )
-    let gliderButton = new Button(Left = 192, Top= 0, Width = 64, Height = 32, Text = "Glider")
+    let saveButton = new Button(Left = 192, Top= 0, Width = 64, Height = 32, Text = "Save")
+    saveButton.Click.Add (fun _ -> Files.saveCoordinatesToFile "file.txt" (newCoordinates ()))
+    let gliderButton = new Button(Left = 256, Top= 0, Width = 64, Height = 32, Text = "Glider")
     gliderButton.Click.Add (fun _ -> 
         "C:/Users/matve/mice-coding/GoL/glider.txt"
         |> Files.loadCoordinatesFromFile
         |> newPanels
+        previousScore <- 0
         )
-    let acornButton = new Button(Left = 256, Top= 0, Width = 64, Height = 32, Text = "Acorn")
+    let acornButton = new Button(Left = 320, Top= 0, Width = 64, Height = 32, Text = "Acorn")
     acornButton.Click.Add (fun _ -> 
         "C:/Users/matve/mice-coding/GoL/acorn.txt"
         |> Files.loadCoordinatesFromFile
         |> newPanels
+        previousScore <- 0
         )
-    let gosperGliderGunButton = new Button(Left = 320, Top= 0, Width = 64, Height = 32, Text = "Gun")
+    let gosperGliderGunButton = new Button(Left = 384, Top= 0, Width = 64, Height = 32, Text = "Gun")
     gosperGliderGunButton.Click.Add (fun _ -> 
         "C:/Users/matve/mice-coding/GoL/gosperGliderGun.txt"
         |> Files.loadCoordinatesFromFile
         |> newPanels
+        previousScore <- 0
         )
-    let closeButton = new Button(Left = 384, Top= 0, Width = 64, Height = 32, Text = "Quit game")
+    let pulsarButton = new Button(Left = 448, Top= 0, Width = 64, Height = 32, Text = "Pulsar")
+    pulsarButton.Click.Add (fun _ -> 
+        "C:/Users/matve/mice-coding/GoL/pulsar.txt"
+        |> Files.loadCoordinatesFromFile
+        |> newPanels
+        previousScore <- 0
+        )
+    let closeButton = new Button(Left = 516, Top= 0, Width = 64, Height = 32, Text = "Quit game")
     closeButton.Click.Add (fun _ -> window.Close())
+    window.Controls.Add score
+    window.Controls.Add pulsarButton
+    window.Controls.Add saveButton
     window.Controls.Add closeButton
     window.Controls.Add gosperGliderGunButton
     window.Controls.Add acornButton
