@@ -2,11 +2,7 @@ module Main
 open System.Windows.Forms
 open System.Drawing
 
-let firstTwo l =
-    match l with
-    | x::y::_ -> [x;y]
-    | x::_ -> [x]
-    | [] -> []
+let mutable previousScore = 0
 
 [<EntryPoint>]
 let main argv =
@@ -18,12 +14,21 @@ let main argv =
                 z.Click.Add (fun _ -> if z.BackColor = Color.White
                                         then z.BackColor <- Color.Black
                                         else z.BackColor <- Color.White)
+                z.Click.Add (fun _ -> previousScore <- 0)
                 window.Controls.Add z
                 yield (x, y, z)
         ]
     let panels = addButtons ()
 
     //IMPORTANT FUNCTIONS
+
+    let rec safeTake n list =
+        if n <= 0 then []
+        else
+            match list with
+            | [] -> []
+            | x::rest -> x :: safeTake (n-1) rest
+    let firstNinetynine = safeTake 99
 
     // This function returns a pair list of coordinates for all the black panels derived from a triple list of all panels and their coordinates
     let newCoordinates () = 
@@ -42,22 +47,24 @@ let main argv =
             else z.BackColor <- Color.White
             )
 
+    let step = []
+
     //BUTTONS AND TIMERS
 
-    let score = new Label(Left = 664, Top = 10, Width = 128, Height = 32, Text = "Score: 0")
+    let score = new Label(Left = 864, Top = 8, Width = 128, Height = 32, Text = "Score: 0")
     let timer = new Timer()
     timer.Interval <- 100
     timer.Enabled <- false
     let mutable previousCoordinates = []
-    let mutable previousScore = 0
+    // previousScore defined on line 11
     timer.Tick.Add (fun _ -> 
         let cc = newCoordinates ()
         if List.contains cc previousCoordinates then 
             previousScore <- 0
         else 
             previousScore <- previousScore + 1
-        score.Text <- sprintf "Score: %d" previousScore 
-        previousCoordinates <- cc :: firstTwo previousCoordinates
+        score.Text <- sprintf "Score: %d" previousScore
+        previousCoordinates <- cc :: firstNinetynine previousCoordinates
         )
     timer.Tick.Add (fun _ -> 
         newCoordinates ()
@@ -110,18 +117,65 @@ let main argv =
         |> newPanels
         previousScore <- 0
         )
-    let closeButton = new Button(Left = 516, Top= 0, Width = 64, Height = 32, Text = "Quit game")
+    let mutable undoneCoordinates = []
+    let undoButton = new Button(Left = 516, Top= 0, Width = 64, Height = 32, Text = "Undo")
+    undoButton.Click.Add (fun _ -> 
+        match previousCoordinates with
+        | [] -> ()
+        | h::t ->
+            newPanels h
+            previousCoordinates <- t
+            undoneCoordinates <- h :: undoneCoordinates
+            previousScore <- previousScore - 1
+            if previousScore < 1 then () else score.Text <- sprintf "Score: %d" previousScore
+        )
+    let redoButton = new Button(Left = 580, Top= 0, Width = 64, Height = 32, Text = "Next step")
+    redoButton.Click.Add (fun _ -> 
+        match undoneCoordinates with
+        | [] -> ()
+        | h::t ->
+            newPanels h
+            undoneCoordinates <- t
+        )
+    let stepButton = new Button(Left = 644, Top= 0, Width = 64, Height = 32, Text = "Next step")
+    stepButton.Click.Add (fun _ -> 
+        let cc = newCoordinates ()
+        if List.contains cc previousCoordinates then 
+            previousScore <- 0
+        else 
+            previousScore <- previousScore + 1
+        score.Text <- sprintf "Score: %d" previousScore
+        previousCoordinates <- cc :: firstNinetynine previousCoordinates
+        )
+    stepButton.Click.Add (fun _ -> 
+        newCoordinates ()
+        |> TheBrain.aliveCellsList
+        |> newPanels
+        )
+    let speedButton = new Button(Left = 708, Top= 0, Width = 64, Height = 32, Text = "Speed: 0.1 sec")
+    speedButton.Click.Add (fun _ ->
+        match timer.Interval with
+        | 50 -> timer.Interval <- 100; speedButton.Text <- "Speed: 0.1 sec"
+        | 100 -> timer.Interval <- 300; speedButton.Text <- "Speed: 0.3 sec"
+        | 300 -> timer.Interval <- 500; speedButton.Text <- "Speed: 0.5 sec"
+        | 500 -> timer.Interval <- 1000; speedButton.Text <- "Speed: 1.0 sec"
+        | _ -> timer.Interval <- 50; speedButton.Text <- "Speed: 0.05 sec"
+        )
+    let closeButton = new Button(Left = 772, Top= 0, Width = 64, Height = 32, Text = "Quit game")
     closeButton.Click.Add (fun _ -> window.Close())
-    window.Controls.Add score
-    window.Controls.Add pulsarButton
-    window.Controls.Add saveButton
-    window.Controls.Add closeButton
-    window.Controls.Add gosperGliderGunButton
-    window.Controls.Add acornButton
-    window.Controls.Add gliderButton
-    window.Controls.Add loadButton
     window.Controls.Add onOffButton
     window.Controls.Add clearButton
+    window.Controls.Add loadButton
+    window.Controls.Add saveButton
+    window.Controls.Add gliderButton
+    window.Controls.Add acornButton
+    window.Controls.Add gosperGliderGunButton
+    window.Controls.Add pulsarButton
+    window.Controls.Add undoButton
+    window.Controls.Add stepButton
+    window.Controls.Add speedButton
+    window.Controls.Add closeButton
+    window.Controls.Add score
     window.WindowState <- FormWindowState.Maximized
     Application.Run window
     0 // return an integer exit code
