@@ -6,7 +6,7 @@ let parseIntPair (str: string) =
         |> Array.map int
     match arr with
     | [|a;b|] -> (a, b)
-    | _ -> failwith ("Unable to parse coordinates: " + str) 
+    | _ -> failwith ("Unable to parse coordinates: " + str)
 
 let parseIntPairList (s: string) =
     let newString = Array.map (fun (x: string) -> x.Trim('[',']')) (s.Split(';'))
@@ -23,5 +23,5 @@ let saveCoordinatesToFile file list =
 
 // Reads the list of coordinates from a given file
 let loadCoordinatesFromFile file =
-    File.ReadAllText file
-    |> parseIntPairList
+    let text = File.ReadAllText file
+    if text = "[]" then [] else parseIntPairList text

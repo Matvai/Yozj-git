@@ -13,3 +13,13 @@ int (string '4')
 "1234564diojniod4fpijgoidjfgo4cfghd".Split('4')
 
 "/--//ubuyhu///--".Trim('/')
+
+type Teeth = Sharp | Dull
+type Crocodile = { name: string; mass: int; teeth: Teeth }
+
+let croc1 = { name = "Matvei"; mass = 50; teeth = Dull }
+let croc2 = { name = "Fluff"; mass = 30; teeth = Sharp }
+
+let croc1Teeth = croc1.teeth
+
+let croc3 = { croc1 with name = "Ania" }
