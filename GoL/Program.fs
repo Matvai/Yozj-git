@@ -12,13 +12,14 @@ let main argv =
 
     let mutable previousScore = 0
     let mutable undoneCoordinates = []
+    let mutable cellColor = Color.Black
 
     let panels =
         [ for y in 0..31 do
             for x in 0..63 do
                 let z = new Panel(BackColor = Color.White, Left = x * 32 + 1, Top = y * 32 + 33, Width = 32, Height = 32) |> addTo gamePanel
                 z.Click.Add (fun _ -> if z.BackColor = Color.White
-                                        then z.BackColor <- Color.Black
+                                        then z.BackColor <- cellColor
                                         else z.BackColor <- Color.White)
                 z.Click.Add (fun _ -> previousScore <- 0)
                 yield (x, y, z)
@@ -36,7 +37,7 @@ let main argv =
     // This function returns a pair list of coordinates for all the black panels derived from a triple list of all panels and their coordinates
     let newCoordinates () = 
         panels |> List.choose (fun (x, y, z) -> 
-            if z.BackColor = Color.Black 
+            if z.BackColor <> Color.White
             then Some (x, y)
             else None
             )
@@ -46,11 +47,9 @@ let main argv =
     let newPanels list =
         panels |> List.iter (fun (x, y, z) -> 
             if List.contains (x, y) list
-            then z.BackColor <- Color.Black
+            then z.BackColor <- cellColor
             else z.BackColor <- Color.White
             )
-
-    let step = []
 
     //BUTTONS AND TIMERS
 
@@ -61,18 +60,13 @@ let main argv =
     let mutable previousCoordinates = []
     // previousScore defined on line 11
     timer.Tick.Add (fun _ -> 
-        let cc = newCoordinates ()
-        if List.contains cc (safeTake 10 previousCoordinates) then 
-            previousScore <- 0
-        else 
-            previousScore <- previousScore + 1
-        score.Text <- sprintf "Score: %d" previousScore
-        previousCoordinates <- cc :: safeTake 99 previousCoordinates
-        )
-    timer.Tick.Add (fun _ -> 
-        newCoordinates ()
-        |> TheBrain.aliveCellsList
-        |> newPanels
+        let gameState = TheBrain.nextStep {cells = newCoordinates (); score = previousScore; history = previousCoordinates}
+        match gameState with
+        | {cells = x; score = y; history = z} ->
+            x |> newPanels
+            previousScore <- y
+            score.Text <- sprintf "Score: %d" previousScore
+            previousCoordinates <- z
         )
 
     let addButton' text effect =
@@ -137,29 +131,48 @@ let main argv =
         )
     addButton "Speed: 0.1 sec" (fun thisButton ->
         match timer.Interval with
+        | 30 -> timer.Interval <- 50; thisButton.Text <- "Speed: 0.05 sec"
         | 50 -> timer.Interval <- 100; thisButton.Text <- "Speed: 0.1 sec"
         | 100 -> timer.Interval <- 300; thisButton.Text <- "Speed: 0.3 sec"
         | 300 -> timer.Interval <- 500; thisButton.Text <- "Speed: 0.5 sec"
         | 500 -> timer.Interval <- 1000; thisButton.Text <- "Speed: 1.0 sec"
-        | _ -> timer.Interval <- 50; thisButton.Text <- "Speed: 0.05 sec"
+        | _ -> timer.Interval <- 30; thisButton.Text <- "Speed: 0.03 sec"
     )
-
-    addButton "Color: black" (fun _ -> 
+    addButton "Color: black" (fun thisButton -> 
         let colorsWindow = new Form(Text = "Colors")
-        colorsWindow.Show()
+        let colorsPanel = new FlowLayoutPanel(Dock = DockStyle.Fill) |> addTo colorsWindow
+        let addColorButton text effect =
+            let x = new Button(AutoSize = true, Text = text) |> addTo colorsPanel
+            x.Click.Add (fun _ -> effect x)
+        addColorButton "Orange" (fun _ -> 
+            cellColor <- Color.Orange
+            thisButton.Text <- "Color: orange"
+            colorsWindow.Close ()
+            )
+        addColorButton "Black" (fun _ -> 
+            cellColor <- Color.Black
+            thisButton.Text <- "Color: black"
+            colorsWindow.Close ()
+            )
+        addColorButton "Green" (fun _ -> 
+            cellColor <- Color.Green
+            thisButton.Text <- "Color: green"
+            colorsWindow.Close ()
+            )
+        colorsWindow.ShowDialog() |> ignore
         )
     addButton "Quit game" (fun _ -> 
         mainWindow.Close()
         )
 
-    let redoButton = new Button(Text = "Next step")
-    redoButton.Click.Add (fun _ -> 
-        match undoneCoordinates with
-        | [] -> ()
-        | h::t ->
-            newPanels h
-            undoneCoordinates <- t
-        )
+    // let redoButton = new Button(Text = "Next step")
+    // redoButton.Click.Add (fun _ -> 
+    //     match undoneCoordinates with
+    //     | [] -> ()
+    //     | h::t ->
+    //         newPanels h
+    //         undoneCoordinates <- t
+    //     )
 
     mainWindow.WindowState <- FormWindowState.Maximized
     Application.Run mainWindow

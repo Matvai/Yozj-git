@@ -18,7 +18,7 @@ let filterNeighbors (x, y) =
         for b in (y - 1)..(y + 1) -> (a, b)
     ]
 
-let gol cell cells =
+let rules cell cells =
     let n = countNeighbors cell cells
     if n < 2 then Dies
     else if n > 3 then Dies 
@@ -29,7 +29,7 @@ let gol cell cells =
 let livingNeighbors cell cells =
     filterNeighbors cell
     |> List.choose (fun x -> 
-        match gol x cells with
+        match rules x cells with
         |Lives -> Some x
         |AsItWas -> if List.contains x cells then Some x else None /// ?????
         |_ -> None
@@ -40,3 +40,22 @@ let aliveCellsList cells =
     cells
     |> List.collect (fun x -> livingNeighbors x cells)
     |> List.distinct
+
+let rec safeTake n list =
+    if n <= 0 then []
+    else
+        match list with
+        | [] -> []
+        | x::rest -> x :: safeTake (n-1) rest
+
+type GameState = {cells: (int * int) list; score: int; history: (int * int) list list}
+
+let nextStep {cells = x; score = y; history = z} =
+    let newCells = aliveCellsList x
+    let newScore = 
+        if List.contains newCells (safeTake 42 z)
+        then 0
+        else y + 1
+    let newHistory = newCells :: safeTake 1000 z
+    {cells = newCells; score = newScore; history = newHistory}
+
