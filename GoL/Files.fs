@@ -21,7 +21,17 @@ let rec formatCoordinates (l: (int*int) list) =
 let saveCoordinatesToFile file list =
     System.IO.File.WriteAllText (file, (formatCoordinates list))
 
-// Reads the list of coordinates from a given file
+let loadFromFileList () =
+    (File.ReadAllText "savedFiles000000000000000.txt").Split(",")
+    |> List.ofArray
+
+let saveToFileList string =
+    if List.contains string (loadFromFileList ())
+    then ()
+    else
+        System.IO.File.WriteAllText ("savedFiles000000000000000.txt", string + "," + File.ReadAllText "savedFiles000000000000000.txt")
+
+/// Reads the list of coordinates from a given file
 let loadCoordinatesFromFile file =
     let text = File.ReadAllText file
     if text = "[]" then [] else parseIntPairList text
