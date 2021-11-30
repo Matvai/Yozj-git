@@ -6,7 +6,7 @@ let addTo (parent: #Control) c = parent.Controls.Add c; c
 
 [<EntryPoint>]
 let main argv =
-    let mainWindow = new Form(Text = "Game of Life")
+    let mainWindow = new Form(Text = "Game of Life 1.5.1")
     let buttonsPanel = new FlowLayoutPanel(Dock = DockStyle.Top, AutoSize = true) |> addTo mainWindow
     let gamePanel = new Panel(Dock = DockStyle.Fill) |> addTo mainWindow
 
