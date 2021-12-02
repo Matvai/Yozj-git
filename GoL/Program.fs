@@ -6,7 +6,7 @@ let addTo (parent: #Control) c = parent.Controls.Add c; c
 
 [<EntryPoint>]
 let main argv =
-    let mainWindow = new Form(Text = "Game of Life 1.4.3.1")
+    let mainWindow = new Form(Text = "Game of Life 1.5.1")
     let buttonsPanel = new FlowLayoutPanel(Dock = DockStyle.Top, AutoSize = true) |> addTo mainWindow
     let gamePanel = new Panel(Dock = DockStyle.Fill) |> addTo mainWindow
 
@@ -200,37 +200,41 @@ let main argv =
     addButton "Color: black" (fun thisButton -> 
         let colorsWindow = new Form(Text = "Colors")
         let colorsPanel = new FlowLayoutPanel(Dock = DockStyle.Fill) |> addTo colorsWindow
-        let addColorButton text effect =
-            let x = new Button(AutoSize = true, Text = text) |> addTo colorsPanel
-            x.Click.Add (fun _ -> effect x)
-        addColorButton "Orange" (fun _ -> 
-            cellColor <- fun () -> Color.Orange
-            thisButton.Text <- "Color: orange"
-            colorsWindow.Close ()
-            )
-        addColorButton "Black" (fun _ -> 
-            cellColor <- fun () -> Color.Black
-            thisButton.Text <- "Color: black"
-            colorsWindow.Close ()
-            )
-        addColorButton "Green" (fun _ -> 
-            cellColor <- fun () -> Color.Green
-            thisButton.Text <- "Color: green"
-            colorsWindow.Close ()
-            )   
-        addColorButton "Rainbow" (fun _ -> 
+        let addColorButton text1 text2 color =
+            let x = new Button(AutoSize = true, Text = text1) |> addTo colorsPanel
+            x.Click.Add (fun _ ->
+                cellColor <- fun () -> color
+                thisButton.Text <- "Color: " + text2
+                colorsWindow.Close ()
+                )
+        addColorButton "Black" "black" Color.Black
+        addColorButton "Red" "red" Color.Red
+        addColorButton "Orange" "orange" Color.Orange
+        addColorButton "Yellow" "yellow" Color.Gold
+        addColorButton "Lime" "lime" Color.Lime
+        addColorButton "Green" "green" Color.Green
+        addColorButton "Turquoise" "turquoise" Color.Turquoise
+        addColorButton "Blue" "blue" Color.Blue
+        addColorButton "Purple" "purple" Color.Purple
+        addColorButton "Violet" "violet" Color.Violet
+        addColorButton "Pink" "pink" Color.HotPink
+        addColorButton "Brown" "brown" Color.SaddleBrown
+        addColorButton "Light gray" "light gray" Color.LightGray
+        addColorButton "Dark gray" "dark gray" Color.DimGray
+        let rainbowButton = new Button(AutoSize = true, Text ="Rainbow") |> addTo colorsPanel
+        rainbowButton.Click.Add (fun _ -> 
             cellColor <- fun () ->
                 match System.Random().Next 10 with
                 | 0 -> Color.Red
                 | 1 -> Color.Orange
-                | 2 -> Color.Yellow
+                | 2 -> Color.Gold
                 | 3 -> Color.Lime
                 | 4 -> Color.Green
                 | 5 -> Color.Turquoise
                 | 6 -> Color.Blue
-                | 7 -> Color.Violet
-                | 8 -> Color.HotPink
-                | _ -> Color.Gold
+                | 7 -> Color.Purple
+                | 8 -> Color.Violet
+                | _ -> Color.HotPink
             thisButton.Text <- "Color: rainbow"
             colorsWindow.Close ()
             )
