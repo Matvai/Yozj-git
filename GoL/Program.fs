@@ -4,14 +4,13 @@ open System.Drawing
 
 let addTo (parent: #Control) c = parent.Controls.Add c; c
 
-[<EntryPoint>]
+[<EntryPoint; System.STAThread>]
 let main argv =
     let mainWindow = new Form(Text = "Game of Life 1.5.2")
     let buttonsPanel = new FlowLayoutPanel(Dock = DockStyle.Top, AutoSize = true) |> addTo mainWindow
     let gamePanel = new Panel(Dock = DockStyle.Fill) |> addTo mainWindow
 
-    let mutable previousScore = 0
-    let mutable undoneCoordinates = []
+    let mutable gameState = {TheBrain.GameState.cells = []; TheBrain.GameState.score = 0; TheBrain.history = []}
     let mutable cellColor = fun () -> Color.Black
 
     let panels =
@@ -21,7 +20,7 @@ let main argv =
                 z.Click.Add (fun _ -> if z.BackColor = Color.White
                                         then z.BackColor <- cellColor ()
                                         else z.BackColor <- Color.White)
-                z.Click.Add (fun _ -> previousScore <- 0)
+                z.Click.Add (fun _ -> gameState <- { gameState with score = 0 })
                 yield (x, y, z)
         ]
 
@@ -57,16 +56,10 @@ let main argv =
     let timer = new Timer()
     timer.Interval <- 100
     timer.Enabled <- false
-    let mutable previousCoordinates = [TheBrain.listAndIntToHistory [] 0]
-    // previousScore defined on line 11
     timer.Tick.Add (fun _ -> 
-        let gameState = TheBrain.nextStep {cells = newCoordinates (); score = previousScore; history = previousCoordinates}
-        match gameState with
-        | {cells = x; score = y; history = z} ->
-            x |> newPanels
-            previousScore <- y
-            score.Text <- sprintf "Score: %d" previousScore
-            previousCoordinates <- z
+        gameState <- TheBrain.nextStep gameState
+        score.Text <- sprintf "Score: %d" gameState.score
+        gameState.cells |> newPanels
         )
 
     let addButton' text effect =
@@ -75,6 +68,13 @@ let main argv =
         x
 
     let addButton text effect = addButton' text effect |> ignore
+
+    // addButton "Foo" <| fun _ ->
+    //    use d = new SaveFileDialog(Filter = "Text|*.txt", Title = "Save?")
+    //    // OpenFileDialog
+    //    d.ShowDialog() |> ignore
+    //    if d.FileName <> "" then
+    //        score.Text <- d.FileName
 
     let onOffButton = addButton' "Push to start" (fun thisButton ->
         if timer.Enabled
@@ -100,7 +100,7 @@ let main argv =
                 |> List.iter (fun x ->
                     if x = ""
                     then ()
-                    else System.IO.File.Delete x
+                    else System.IO.File.Delete (x + ".txt")
                     )
                 System.IO.File.WriteAllText ("savedFiles000000000000000.txt", "")
                 deleteWindow.Close ()
@@ -117,10 +117,12 @@ let main argv =
             then ()
             else
                 let y = new Button(AutoSize = true, Text = x) |> addTo loadPanel
-                y.Click.Add (fun _ -> 
-                    "C:/Users/matve/mice-coding/GoL/" + x + ".txt"
-                    |> Files.loadCoordinatesFromFile
-                    |> newPanels
+                y.Click.Add (fun _ ->
+                    let loadedCells = 
+                        "C:/Users/matve/mice-coding/GoL/" + x + ".txt"
+                        |> Files.loadCoordinatesFromFile
+                    newPanels loadedCells
+                    gameState <- {gameState with cells = loadedCells}
                     loadWindow.Close ()
                     )
             )
@@ -157,7 +159,7 @@ let main argv =
                 "C:/Users/matve/mice-coding/GoL/" + file
                 |> Files.loadCoordinatesFromFile
                 |> newPanels
-                previousScore <- 0
+                gameState <- {gameState with score = 0}
                 presetsWindow.Close ()
             )
         addPresetButton "Glider" "glider0000000000000000000.txt"
@@ -168,21 +170,17 @@ let main argv =
         presetsWindow.ShowDialog() |> ignore
         )    
     addButton "Undo" (fun _ -> 
-        match previousCoordinates with
+        match gameState.history with
         | [] -> ()
         | {cells = x; score = y}::z ->
             newPanels x
-            previousCoordinates <- z
-            undoneCoordinates <- x :: undoneCoordinates
-            previousScore <- previousScore - 1
-            if previousScore < 1 then () else score.Text <- sprintf "Score: %d" previousScore
+            gameState <- {gameState with score = y}
+            if y < 1 then () else score.Text <- sprintf "Score: %d" y
         )
     addButton "Next step" (fun _ -> 
-        let gameState = TheBrain.nextStep {cells = newCoordinates (); score = previousScore; history = previousCoordinates}
-        newPanels gameState.cells
-        previousScore gameState.score
-        score.Text <- sprintf "Score: %d" previousScore
-        previousCoordinates <- gameState.history
+        gameState <- TheBrain.nextStep gameState
+        score.Text <- sprintf "Score: %d" gameState.score
+        gameState.cells |> newPanels
         )
     addButton "Speed: 0.1 sec" (fun thisButton ->
         match timer.Interval with
