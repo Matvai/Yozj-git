@@ -6,7 +6,7 @@ let addTo (parent: #Control) c = parent.Controls.Add c; c
 
 [<EntryPoint>]
 let main argv =
-    let mainWindow = new Form(Text = "Game of Life 1.5.1")
+    let mainWindow = new Form(Text = "Game of Life 1.5.2")
     let buttonsPanel = new FlowLayoutPanel(Dock = DockStyle.Top, AutoSize = true) |> addTo mainWindow
     let gamePanel = new Panel(Dock = DockStyle.Fill) |> addTo mainWindow
 
@@ -57,7 +57,7 @@ let main argv =
     let timer = new Timer()
     timer.Interval <- 100
     timer.Enabled <- false
-    let mutable previousCoordinates = []
+    let mutable previousCoordinates = [TheBrain.listAndIntToHistory [] 0]
     // previousScore defined on line 11
     timer.Tick.Add (fun _ -> 
         let gameState = TheBrain.nextStep {cells = newCoordinates (); score = previousScore; history = previousCoordinates}
@@ -170,24 +170,19 @@ let main argv =
     addButton "Undo" (fun _ -> 
         match previousCoordinates with
         | [] -> ()
-        | h::t ->
-            newPanels h
-            previousCoordinates <- t
-            undoneCoordinates <- h :: undoneCoordinates
+        | {cells = x; score = y}::z ->
+            newPanels x
+            previousCoordinates <- z
+            undoneCoordinates <- x :: undoneCoordinates
             previousScore <- previousScore - 1
             if previousScore < 1 then () else score.Text <- sprintf "Score: %d" previousScore
         )
     addButton "Next step" (fun _ -> 
-        let cc = newCoordinates ()
-        if List.contains cc (safeTake 10 previousCoordinates) then 
-            previousScore <- 0
-        else 
-            previousScore <- previousScore + 1
+        let gameState = TheBrain.nextStep {cells = newCoordinates (); score = previousScore; history = previousCoordinates}
+        newPanels gameState.cells
+        previousScore gameState.score
         score.Text <- sprintf "Score: %d" previousScore
-        previousCoordinates <- cc :: safeTake 99 previousCoordinates
-        newCoordinates ()
-        |> TheBrain.aliveCellsList
-        |> newPanels
+        previousCoordinates <- gameState.history
         )
     addButton "Speed: 0.1 sec" (fun thisButton ->
         match timer.Interval with

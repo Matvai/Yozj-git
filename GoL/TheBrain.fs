@@ -48,14 +48,21 @@ let rec safeTake n list =
         | [] -> []
         | x::rest -> x :: safeTake (n-1) rest
 
-type GameState = {cells: (int * int) list; score: int; history: (int * int) list list}
+
+type History = {cells: (int * int) list; score: int}
+type GameState = {cells: (int * int) list; score: int; history: History list}
+
+let listAndIntToHistory list int =
+    {cells = list; score = int}
+
+let cellsOnly list = List.map (fun x -> x.cells) list
 
 let nextStep {cells = x; score = y; history = z} =
     let newCells = aliveCellsList x
     let newScore = 
-        if List.contains newCells (safeTake 42 z)
+        if List.contains newCells (safeTake 42 (cellsOnly z))
         then 0
         else y + 1
-    let newHistory = newCells :: safeTake 1000 z
+    let newHistory = {cells = newCells; score = newScore} :: safeTake 1000 z
     {cells = newCells; score = newScore; history = newHistory}
 
