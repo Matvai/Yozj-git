@@ -179,12 +179,10 @@ let main argv =
         )
     addButton "Next step" (fun _ -> 
         let gameState = TheBrain.nextStep {cells = newCoordinates (); score = previousScore; history = previousCoordinates}
-        match gameState with
-        | {cells = x; score = y; history = z} ->
-            x |> newPanels
-            previousScore <- y
-            score.Text <- sprintf "Score: %d" previousScore
-            previousCoordinates <- z
+        newPanels gameState.cells
+        previousScore gameState.score
+        score.Text <- sprintf "Score: %d" previousScore
+        previousCoordinates <- gameState.history
         )
     addButton "Speed: 0.1 sec" (fun thisButton ->
         match timer.Interval with
