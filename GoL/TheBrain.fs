@@ -55,10 +55,7 @@ type GameState = {cells: (int * int) list; score: int; history: History list}
 let listAndIntToHistory list int =
     {cells = list; score = int}
 
-let rec cellsOnly list =
-    match list with
-    | [] -> []
-    | {cells = x; score = _}::rest -> x :: cellsOnly rest
+let cellsOnly list = List.map (fun x -> x.cells) list
 
 let nextStep {cells = x; score = y; history = z} =
     let newCells = aliveCellsList x
