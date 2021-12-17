@@ -63,6 +63,6 @@ let nextStep {cells = x; score = y; history = z} =
         if List.contains newCells (safeTake 42 (cellsOnly z))
         then 0
         else y + 1
-    let newHistory = {cells = newCells; score = newScore} :: safeTake 1000 z
+    let newHistory = {cells = x; score = y} :: safeTake 1000 z
     {cells = newCells; score = newScore; history = newHistory}
 

@@ -6,21 +6,19 @@ let addTo (parent: #Control) c = parent.Controls.Add c; c
 
 [<EntryPoint; System.STAThread>]
 let main argv =
-    let mainWindow = new Form(Text = "Game of Life 1.5.2")
+    let mainWindow = new Form(Text = "Game of Life 1.6.1")
     let buttonsPanel = new FlowLayoutPanel(Dock = DockStyle.Top, AutoSize = true) |> addTo mainWindow
     let gamePanel = new Panel(Dock = DockStyle.Fill) |> addTo mainWindow
 
     let mutable gameState = {TheBrain.GameState.cells = []; TheBrain.GameState.score = 0; TheBrain.history = []}
     let mutable cellColor = fun () -> Color.Black
 
+    let score = new Label(AutoSize = true, Left = 928, Top = 8, Width = 128, Height = 32, Text = "Score: 0") |> addTo buttonsPanel
+    
     let panels =
         [ for y in 0..31 do
             for x in 0..63 do
                 let z = new Panel(BackColor = Color.White, Left = x * 32 + 1, Top = y * 32 + 33, Width = 32, Height = 32) |> addTo gamePanel
-                z.Click.Add (fun _ -> if z.BackColor = Color.White
-                                        then z.BackColor <- cellColor ()
-                                        else z.BackColor <- Color.White)
-                z.Click.Add (fun _ -> gameState <- { gameState with score = 0 })
                 yield (x, y, z)
         ]
 
@@ -33,13 +31,6 @@ let main argv =
             | [] -> []
             | x::rest -> x :: safeTake (n-1) rest
 
-    // This function returns a pair list of coordinates for all the black panels derived from a triple list of all panels and their coordinates
-    let newCoordinates () = 
-        panels |> List.choose (fun (x, y, z) -> 
-            if z.BackColor <> Color.White
-            then Some (x, y)
-            else None
-            )
     // This function changes the color of all panels corresponding 
     // to alive coordinates to black and all panels corresponding 
     // to dead coordinates to white
@@ -50,17 +41,20 @@ let main argv =
             else z.BackColor <- Color.White
             )
 
+    let setState s =
+        gameState <- s
+        score.Text <- sprintf "Score: %d" gameState.score
+        gameState.cells |> newPanels
+
+    panels |> List.iter (fun (x, y, z) ->
+        z.Click.Add (fun _ -> setState { gameState with cells = (x, y) :: gameState.cells; score = 0 })
+        )
     //BUTTONS AND TIMERS
 
-    let score = new Label(AutoSize = true, Left = 928, Top = 8, Width = 128, Height = 32, Text = "Score: 0") |> addTo buttonsPanel
     let timer = new Timer()
     timer.Interval <- 100
     timer.Enabled <- false
-    timer.Tick.Add (fun _ -> 
-        gameState <- TheBrain.nextStep gameState
-        score.Text <- sprintf "Score: %d" gameState.score
-        gameState.cells |> newPanels
-        )
+    timer.Tick.Add (fun _ -> setState (TheBrain.nextStep gameState))
 
     let addButton' text effect =
         let x = new Button(AutoSize = true, Text = text) |> addTo buttonsPanel
@@ -82,7 +76,7 @@ let main argv =
         else thisButton.Text <- "Push to stop"; timer.Enabled <- true
         )
     addButton "Clear" (fun _ -> 
-        newPanels []
+        setState {gameState with cells = []; score = 0}
         onOffButton.Text <- "Push to start"; timer.Enabled <- false
         )
     addButton "Load" (fun _ ->
@@ -121,8 +115,7 @@ let main argv =
                     let loadedCells = 
                         "C:/Users/matve/mice-coding/GoL/" + x + ".txt"
                         |> Files.loadCoordinatesFromFile
-                    newPanels loadedCells
-                    gameState <- {gameState with cells = loadedCells}
+                    setState {gameState with cells = loadedCells; score = 0}
                     loadWindow.Close ()
                     )
             )
@@ -139,7 +132,7 @@ let main argv =
             | _ -> 
                 if String.length x.Text < 25 
                 then 
-                    Files.saveCoordinatesToFile (x.Text + ".txt") (newCoordinates ())
+                    Files.saveCoordinatesToFile (x.Text + ".txt") gameState.cells
                     Files.saveToFileList x.Text
                     saveWindow.Close ()
                 else ()
@@ -156,10 +149,10 @@ let main argv =
         let addPresetButton text file =
             let x = new Button(AutoSize = true, Text = text) |> addTo presetsPanel
             x.Click.Add (fun _ -> 
-                "C:/Users/matve/mice-coding/GoL/" + file
-                |> Files.loadCoordinatesFromFile
-                |> newPanels
-                gameState <- {gameState with score = 0}
+                let loadedCells =
+                    "C:/Users/matve/mice-coding/GoL/" + file
+                    |> Files.loadCoordinatesFromFile
+                setState {gameState with cells = loadedCells; score = 0}
                 presetsWindow.Close ()
             )
         addPresetButton "Glider" "glider0000000000000000000.txt"
@@ -173,15 +166,9 @@ let main argv =
         match gameState.history with
         | [] -> ()
         | {cells = x; score = y}::z ->
-            newPanels x
-            gameState <- {gameState with score = y}
-            if y < 1 then () else score.Text <- sprintf "Score: %d" y
+            setState{gameState with cells = x; score = y; history = z}
         )
-    addButton "Next step" (fun _ -> 
-        gameState <- TheBrain.nextStep gameState
-        score.Text <- sprintf "Score: %d" gameState.score
-        gameState.cells |> newPanels
-        )
+    addButton "Next step" (fun _ -> setState (TheBrain.nextStep gameState))
     addButton "Speed: 0.1 sec" (fun thisButton ->
         match timer.Interval with
         | 50 -> timer.Interval <- 100; thisButton.Text <- "Speed: 0.1 sec"
