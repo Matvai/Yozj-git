@@ -6,7 +6,7 @@ let addTo (parent: #Control) c = parent.Controls.Add c; c
 
 [<EntryPoint; System.STAThread>]
 let main argv =
-    let mainWindow = new Form(Text = "Game of Life 1.6.1")
+    let mainWindow = new Form(Text = "Game of Life 1.6.2")
     let buttonsPanel = new FlowLayoutPanel(Dock = DockStyle.Top, AutoSize = true) |> addTo mainWindow
     let gamePanel = new Panel(Dock = DockStyle.Fill) |> addTo mainWindow
 
@@ -22,29 +22,15 @@ let main argv =
                 yield (x, y, z)
         ]
 
-    //IMPORTANT FUNCTIONS
-
-    let rec safeTake n list =
-        if n <= 0 then []
-        else
-            match list with
-            | [] -> []
-            | x::rest -> x :: safeTake (n-1) rest
-
-    // This function changes the color of all panels corresponding 
-    // to alive coordinates to black and all panels corresponding 
-    // to dead coordinates to white
-    let newPanels list =
-        panels |> List.iter (fun (x, y, z) -> 
-            if List.contains (x, y) list
-            then z.BackColor <- cellColor ()
-            else z.BackColor <- Color.White
-            )
+    //IMPORTANT FUNCTION
 
     let setState s =
         gameState <- s
         score.Text <- sprintf "Score: %d" gameState.score
-        gameState.cells |> newPanels
+        for (x, y, z) in panels do
+            if List.contains (x, y) gameState.cells
+            then z.BackColor <- cellColor ()
+            else z.BackColor <- Color.White
 
     panels |> List.iter (fun (x, y, z) ->
         z.Click.Add (fun _ -> setState { gameState with cells = (x, y) :: gameState.cells; score = 0 })
@@ -63,13 +49,6 @@ let main argv =
 
     let addButton text effect = addButton' text effect |> ignore
 
-    // addButton "Foo" <| fun _ ->
-    //    use d = new SaveFileDialog(Filter = "Text|*.txt", Title = "Save?")
-    //    // OpenFileDialog
-    //    d.ShowDialog() |> ignore
-    //    if d.FileName <> "" then
-    //        score.Text <- d.FileName
-
     let onOffButton = addButton' "Push to start" (fun thisButton ->
         if timer.Enabled
         then thisButton.Text <- "Push to start"; timer.Enabled <- false
@@ -80,68 +59,18 @@ let main argv =
         onOffButton.Text <- "Push to start"; timer.Enabled <- false
         )
     addButton "Load" (fun _ ->
-        let loadWindow = new Form(Text = "Load")
-        let loadPanel = new FlowLayoutPanel(Dock = DockStyle.Fill) |> addTo loadWindow
-        let deleteButton = new Button(AutoSize = true, Text = "Delete all files") |> addTo loadPanel
-        deleteButton.Click.Add (fun _ ->
-            let deleteWindow = new Form(Text = "Delete all files?")
-            let deletePanel = new FlowLayoutPanel(Dock = DockStyle.Fill) |> addTo deleteWindow
-            let deleteText = new Label(AutoSize = true, Text = "Are you sure you want to delete all saved files?") |> addTo deletePanel
-            let yesButton = new Button(Text = "Yes") |> addTo deletePanel
-            let noButton = new Button(Text = "No") |> addTo deletePanel
-            yesButton.Click.Add (fun _ ->
-                Files.loadFromFileList ()
-                |> List.iter (fun x ->
-                    if x = ""
-                    then ()
-                    else System.IO.File.Delete (x + ".txt")
-                    )
-                System.IO.File.WriteAllText ("savedFiles000000000000000.txt", "")
-                deleteWindow.Close ()
-                loadWindow.Close ()
-                )
-            noButton.Click.Add (fun _ ->
-                deleteWindow.Close ()
-                )
-            deleteWindow.ShowDialog () |> ignore
-            )
-        Files.loadFromFileList ()
-        |> List.iter (fun x -> 
-            if x = ""
-            then ()
-            else
-                let y = new Button(AutoSize = true, Text = x) |> addTo loadPanel
-                y.Click.Add (fun _ ->
-                    let loadedCells = 
-                        "C:/Users/matve/mice-coding/GoL/" + x + ".txt"
-                        |> Files.loadCoordinatesFromFile
-                    setState {gameState with cells = loadedCells; score = 0}
-                    loadWindow.Close ()
-                    )
-            )
-        loadWindow.ShowDialog () |> ignore
+        use d = new OpenFileDialog(Filter = "Text|*.txt", Title = "Load?")
+        d.ShowDialog() |> ignore
+        if d.FileName <> "" then
+            let loadedCells = 
+                Files.loadCoordinatesFromFile d.FileName
+            setState {gameState with cells = loadedCells; score = 0}
         )
     addButton "Save" (fun _ ->
-        let saveWindow = new Form(Text = "Save")
-        let savePanel = new FlowLayoutPanel(Dock = DockStyle.Fill) |> addTo saveWindow
-        let x = new TextBox() |> addTo savePanel
-        let saveButton = new Button(AutoSize = true, Text = "Save") |> addTo savePanel
-        saveButton.Click.Add (fun _ ->
-            match x.Text with
-            | "" -> ()
-            | _ -> 
-                if String.length x.Text < 25 
-                then 
-                    Files.saveCoordinatesToFile (x.Text + ".txt") gameState.cells
-                    Files.saveToFileList x.Text
-                    saveWindow.Close ()
-                else ()
-            )
-        let cancelButton = new Button(AutoSize = true, Text = "Cancel") |> addTo savePanel
-        cancelButton.Click.Add (fun _ ->
-            saveWindow.Close ()
-            )
-        saveWindow.ShowDialog() |> ignore
+        use d = new SaveFileDialog(Filter = "Text|*.txt", Title = "Save?")
+        d.ShowDialog() |> ignore
+        if d.FileName <> "" then
+            Files.saveCoordinatesToFile d.FileName gameState.cells
         )
     addButton "Presets" (fun thisButton -> 
         let presetsWindow = new Form(Text = "Presets")
@@ -215,6 +144,17 @@ let main argv =
                 | 7 -> Color.Purple
                 | 8 -> Color.Violet
                 | _ -> Color.HotPink
+            thisButton.Text <- "Color: rainbow"
+            colorsWindow.Close ()
+            )
+        let sparklingBlueButton = new Button(AutoSize = true, Text ="Rainbow") |> addTo colorsPanel
+        sparklingBlueButton.Click.Add (fun _ -> 
+            cellColor <- fun () ->
+                match System.Random().Next 4 with
+                | 0 -> Color.LightBlue
+                | 1 -> Color.Blue
+                | 2 -> Color.Turquoise
+                | _ -> Color.Aquamarine
             thisButton.Text <- "Color: rainbow"
             colorsWindow.Close ()
             )

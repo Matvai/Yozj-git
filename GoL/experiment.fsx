@@ -23,3 +23,10 @@ let croc2 = { name = "Fluff"; mass = 30; teeth = Sharp }
 let croc1Teeth = croc1.teeth
 
 let croc3 = { croc1 with name = "Ania" }
+
+Directory.GetFiles(".") |> Array.filter (fun f -> f.EndsWith ".txt")
+
+let rec map f l =
+    match l with
+    |head::tail -> f head::map f tail
+    |[] -> []
