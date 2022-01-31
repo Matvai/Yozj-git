@@ -3,38 +3,44 @@ open System.Windows.Forms
 open System.Drawing
 
 let addTo (parent: #Control) c = parent.Controls.Add c; c
+    
+type DrawPanel() as myself =
+    inherit Panel()
+    do
+        myself.SetStyle(ControlStyles.AllPaintingInWmPaint, true)
+        myself.SetStyle(ControlStyles.OptimizedDoubleBuffer, true)
 
 [<EntryPoint; System.STAThread>]
-let main argv =
-    let mainWindow = new Form(Text = "Game of Life 1.6.2")
+let main1 argv =
+    let mainWindow = new Form(Text = "Game of Life 1.6.2.1")
     let buttonsPanel = new FlowLayoutPanel(Dock = DockStyle.Top, AutoSize = true) |> addTo mainWindow
-    let gamePanel = new Panel(Dock = DockStyle.Fill) |> addTo mainWindow
+    let gamePanel = new DrawPanel(Dock = DockStyle.Fill, BackColor = Color.Transparent) |> addTo mainWindow
 
     let mutable gameState = {TheBrain.GameState.cells = []; TheBrain.GameState.score = 0; TheBrain.history = []}
-    let mutable cellColor = fun () -> Color.Black
+    let mutable cellColor = fun () -> Brushes.Black
 
     let score = new Label(AutoSize = true, Left = 928, Top = 8, Width = 128, Height = 32, Text = "Score: 0") |> addTo buttonsPanel
     
-    let panels =
-        [ for y in 0..31 do
-            for x in 0..63 do
-                let z = new Panel(BackColor = Color.White, Left = x * 32 + 1, Top = y * 32 + 33, Width = 32, Height = 32) |> addTo gamePanel
-                yield (x, y, z)
-        ]
+    gamePanel.Paint.Add (fun e ->
+        for y in 0..gamePanel.Height/33 do
+            for x in 0..gamePanel.Width/33 do
+                let color =
+                    if List.contains (x, y) gameState.cells
+                    then cellColor ()
+                    else Brushes.White
+                e.Graphics.FillRectangle(color,x * 33,y * 33,32,32)
+        )
 
     //IMPORTANT FUNCTION
 
     let setState s =
         gameState <- s
         score.Text <- sprintf "Score: %d" gameState.score
-        for (x, y, z) in panels do
-            if List.contains (x, y) gameState.cells
-            then z.BackColor <- cellColor ()
-            else z.BackColor <- Color.White
-
-    panels |> List.iter (fun (x, y, z) ->
-        z.Click.Add (fun _ -> setState { gameState with cells = (x, y) :: gameState.cells; score = 0 })
-        )
+        gamePanel.Refresh()
+    
+    // panels |> List.iter (fun (x, y, z) ->
+    //     z.Click.Add (fun _ -> setState { gameState with cells = (x, y) :: gameState.cells; score = 0 })
+    //     )
     //BUTTONS AND TIMERS
 
     let timer = new Timer()
@@ -116,46 +122,46 @@ let main argv =
                 thisButton.Text <- "Color: " + text2
                 colorsWindow.Close ()
                 )
-        addColorButton "Black" "black" Color.Black
-        addColorButton "Red" "red" Color.Red
-        addColorButton "Orange" "orange" Color.Orange
-        addColorButton "Yellow" "yellow" Color.Gold
-        addColorButton "Lime" "lime" Color.Lime
-        addColorButton "Green" "green" Color.Green
-        addColorButton "Turquoise" "turquoise" Color.Turquoise
-        addColorButton "Blue" "blue" Color.Blue
-        addColorButton "Purple" "purple" Color.Purple
-        addColorButton "Violet" "violet" Color.Violet
-        addColorButton "Pink" "pink" Color.HotPink
-        addColorButton "Brown" "brown" Color.SaddleBrown
-        addColorButton "Light gray" "light gray" Color.LightGray
-        addColorButton "Dark gray" "dark gray" Color.DimGray
+        addColorButton "Black" "black" Brushes.Black
+        addColorButton "Red" "red" Brushes.Red
+        addColorButton "Orange" "orange" Brushes.Orange
+        addColorButton "Yellow" "yellow" Brushes.Gold
+        addColorButton "Lime" "lime" Brushes.Lime
+        addColorButton "Green" "green" Brushes.Green
+        addColorButton "Turquoise" "turquoise" Brushes.Turquoise
+        addColorButton "Blue" "blue" Brushes.Blue
+        addColorButton "Purple" "purple" Brushes.Purple
+        addColorButton "Violet" "violet" Brushes.Violet
+        addColorButton "Pink" "pink" Brushes.HotPink
+        addColorButton "Brown" "brown" Brushes.SaddleBrown
+        addColorButton "Light gray" "light gray" Brushes.LightGray
+        addColorButton "Dark gray" "dark gray" Brushes.DimGray
         let rainbowButton = new Button(AutoSize = true, Text ="Rainbow") |> addTo colorsPanel
         rainbowButton.Click.Add (fun _ -> 
             cellColor <- fun () ->
                 match System.Random().Next 10 with
-                | 0 -> Color.Red
-                | 1 -> Color.Orange
-                | 2 -> Color.Gold
-                | 3 -> Color.Lime
-                | 4 -> Color.Green
-                | 5 -> Color.Turquoise
-                | 6 -> Color.Blue
-                | 7 -> Color.Purple
-                | 8 -> Color.Violet
-                | _ -> Color.HotPink
+                | 0 -> Brushes.Red
+                | 1 -> Brushes.Orange
+                | 2 -> Brushes.Gold
+                | 3 -> Brushes.Lime
+                | 4 -> Brushes.Green
+                | 5 -> Brushes.Turquoise
+                | 6 -> Brushes.Blue
+                | 7 -> Brushes.Purple
+                | 8 -> Brushes.Violet
+                | _ -> Brushes.HotPink
             thisButton.Text <- "Color: rainbow"
             colorsWindow.Close ()
             )
-        let sparklingBlueButton = new Button(AutoSize = true, Text ="Rainbow") |> addTo colorsPanel
+        let sparklingBlueButton = new Button(AutoSize = true, Text ="Sparkling Blue") |> addTo colorsPanel
         sparklingBlueButton.Click.Add (fun _ -> 
             cellColor <- fun () ->
                 match System.Random().Next 4 with
-                | 0 -> Color.LightBlue
-                | 1 -> Color.Blue
-                | 2 -> Color.Turquoise
-                | _ -> Color.Aquamarine
-            thisButton.Text <- "Color: rainbow"
+                | 0 -> Brushes.LightBlue
+                | 1 -> Brushes.Blue
+                | 2 -> Brushes.Turquoise
+                | _ -> Brushes.Aquamarine
+            thisButton.Text <- "Color: sparkling blue"
             colorsWindow.Close ()
             )
         colorsWindow.ShowDialog() |> ignore
@@ -176,3 +182,15 @@ let main argv =
     mainWindow.WindowState <- FormWindowState.Maximized
     Application.Run mainWindow
     0 // return an integer exit code
+
+// let main argv =
+//     let mainWindow = new Form(Text = "Game of Life 1.6.2 test")
+//     let mk = new Panel(Dock = DockStyle.Fill, Width = 242, Height = 420, BackColor=Color.Black) |> addTo mainWindow
+//     mk.Paint.Add (fun e ->
+//         for y in 0..mk.Height/22 do
+//             for x in 0..mk.Width/22 do
+//                 e.Graphics.FillRectangle(Brushes.Turquoise,x * 22,y * 22,20,20)
+//         )
+//     mainWindow.WindowState <- FormWindowState.Maximized
+//     Application.Run mainWindow
+//     0

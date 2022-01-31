@@ -1,32 +1,51 @@
-open System.IO
-File.WriteAllText ("file.txt", "murch crocodile")
-let filetext = File.ReadAllText "file.txt"
+// Algebraic Data Type aka ADT
+type T = A | B | C
 
-firstTwo [1;2;3;4]
+type T2 = X of bool | Y of T  // Sum type
 
-"4uyhbuy".[0]
+let mrkr = X false
 
-int "42"
-int '4'
-int (string '4')
+let mkr = Y C
 
-"1234564diojniod4fpijgoidjfgo4cfghd".Split('4')
+type R = { a : bool; b : T } // Product type, aka "Record"
 
-"/--//ubuyhu///--".Trim('/')
+let mrchkrk = { a = true; b = A }
 
-type Teeth = Sharp | Dull
-type Crocodile = { name: string; mass: int; teeth: Teeth }
+type G = P of R | Q of T2
 
-let croc1 = { name = "Matvei"; mass = 50; teeth = Dull }
-let croc2 = { name = "Fluff"; mass = 30; teeth = Sharp }
+|T| = 3
+|T2| = |bool| + |T| = 2 + 3 = 5
+|R| = |bool| * |T| = 2 * 3 = 6
+|G| = |R| + |T2| = (|bool| * |T|) + (|bool| + |T|) =  
+|unit| = 1
 
-let croc1Teeth = croc1.teeth
+type O = S of unit | J of bool
+type murchk = S | J of bool
 
-let croc3 = { croc1 with name = "Ania" }
+type M() =  // <-- "class"
+    let mutable u = 42
+    member m.foo x = x + u  // "method"
+    member m.setU uu = u <- uu
+    member val H = "bar" with get, set // "property"
 
-Directory.GetFiles(".") |> Array.filter (fun f -> f.EndsWith ".txt")
+    member private m.hhh x = x / 3
+    member public m.t x = m.hhh (x-3)
 
-let rec map f l =
-    match l with
-    |head::tail -> f head::map f tail
-    |[] -> []
+let d = new M()  // <- "object"
+d.foo 4
+d.setU 38
+d.H <- "foo"
+d.H
+
+d.hhh 9
+d.t 9
+
+type N() =
+    inherit M()
+    member n.coocoo i = i * 2
+
+let f = new N()
+f.coocoo 5
+f.H
+f.foo 6
+f.setU 88
