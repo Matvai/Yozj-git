@@ -12,23 +12,26 @@ type DrawPanel() as myself =
 
 [<EntryPoint; System.STAThread>]
 let main1 argv =
-    let mainWindow = new Form(Text = "Game of Life 1.6.2.1")
+    let mainWindow = new Form(Text = "Game of Life 1.6.3")
     let buttonsPanel = new FlowLayoutPanel(Dock = DockStyle.Top, AutoSize = true) |> addTo mainWindow
     let gamePanel = new DrawPanel(Dock = DockStyle.Fill, BackColor = Color.Transparent) |> addTo mainWindow
 
     let mutable gameState = {TheBrain.GameState.cells = []; TheBrain.GameState.score = 0; TheBrain.history = []}
     let mutable cellColor = fun () -> Brushes.Black
+    let mutable cellSize = 33
 
     let score = new Label(AutoSize = true, Left = 928, Top = 8, Width = 128, Height = 32, Text = "Score: 0") |> addTo buttonsPanel
-    
+
     gamePanel.Paint.Add (fun e ->
-        for y in 0..gamePanel.Height/33 do
-            for x in 0..gamePanel.Width/33 do
+        let gh = gamePanel.Height/cellSize/2
+        let gw = gamePanel.Width/cellSize/2
+        for y in -gh..gh do
+            for x in -gw..gw do
                 let color =
                     if List.contains (x, y) gameState.cells
                     then cellColor ()
                     else Brushes.White
-                e.Graphics.FillRectangle(color,x * 33,y * 33,32,32)
+                e.Graphics.FillRectangle(color,gamePanel.Width / 2 + cellSize * x - cellSize/2,gamePanel.Height / 2 + cellSize * y - cellSize/2,cellSize - 1,cellSize - 1)
         )
 
     //IMPORTANT FUNCTION
@@ -37,10 +40,26 @@ let main1 argv =
         gameState <- s
         score.Text <- sprintf "Score: %d" gameState.score
         gamePanel.Refresh()
-    
-    // panels |> List.iter (fun (x, y, z) ->
-    //     z.Click.Add (fun _ -> setState { gameState with cells = (x, y) :: gameState.cells; score = 0 })
-    //     )
+
+    gamePanel.MouseDown.Add (fun e ->
+        let newCell = ((e.X - gamePanel.Width / 2) / cellSize, (e.Y - gamePanel.Height / 2) / cellSize)
+        setState {
+            cells = 
+                if List.contains newCell gameState.cells 
+                    then List.filter (fun x -> x <> newCell) gameState.cells 
+                    else newCell :: gameState.cells 
+            score = 0 
+            history = gameState.history
+            }
+        )
+
+    // min 15 10  | |
+    // max 2 3   v v    
+    gamePanel.MouseWheel.Add (fun x ->
+        cellSize <- min 400 (max 5 (cellSize + x.Delta / 10))
+        gamePanel.Refresh()
+        )
+
     //BUTTONS AND TIMERS
 
     let timer = new Timer()
