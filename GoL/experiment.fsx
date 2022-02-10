@@ -32,6 +32,7 @@ type M() =  // <-- "class"
     member public m.t x = m.hhh (x-3)
 
 let d = new M()  // <- "object"
+let d2 = new M()
 d.foo 4
 d.setU 38
 d.H <- "foo"
@@ -49,3 +50,19 @@ f.coocoo 5
 f.H
 f.foo 6
 f.setU 88
+
+int 4.2
+
+7 / 3
+
+let x = 5.0
+let y = 2
+
+ceil (x / float y)
+
+floor 7.8
+floor -7.8
+round 2.6
+floor (2.6 + 0.5)
+round 2.2
+floor (2.2 + 0.5)

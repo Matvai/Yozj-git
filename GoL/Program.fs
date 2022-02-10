@@ -41,8 +41,10 @@ let main1 argv =
         score.Text <- sprintf "Score: %d" gameState.score
         gamePanel.Refresh()
 
-    gamePanel.MouseDown.Add (fun e ->
-        let newCell = ((e.X - gamePanel.Width / 2) / cellSize, (e.Y - gamePanel.Height / 2) / cellSize)
+    gamePanel.MouseUp.Add (fun e ->
+        let x = e.X - gamePanel.Width / 2
+        let y = e.Y - gamePanel.Height / 2
+        let newCell =  (int (round (float x / float cellSize))), (int (round (float y / float cellSize)))
         setState {
             cells = 
                 if List.contains newCell gameState.cells 
