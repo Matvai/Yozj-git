@@ -12,26 +12,38 @@ type DrawPanel() as myself =
 
 [<EntryPoint; System.STAThread>]
 let main1 argv =
-    let mainWindow = new Form(Text = "Game of Life 1.6.3")
+    let mainWindow = new Form(Text = "Game of Life 1.6.4")
     let buttonsPanel = new FlowLayoutPanel(Dock = DockStyle.Top, AutoSize = true) |> addTo mainWindow
     let gamePanel = new DrawPanel(Dock = DockStyle.Fill, BackColor = Color.Transparent) |> addTo mainWindow
 
     let mutable gameState = {TheBrain.GameState.cells = []; TheBrain.GameState.score = 0; TheBrain.history = []}
     let mutable cellColor = fun () -> Brushes.Black
     let mutable cellSize = 33
+    let mutable centerOffset = (0, 0)
+    let mutable dragStartCenterOffset = (0, 0)
+    let mutable mouseOffset = None
 
     let score = new Label(AutoSize = true, Left = 928, Top = 8, Width = 128, Height = 32, Text = "Score: 0") |> addTo buttonsPanel
 
     gamePanel.Paint.Add (fun e ->
-        let gh = gamePanel.Height/cellSize/2
-        let gw = gamePanel.Width/cellSize/2
-        for y in -gh..gh do
-            for x in -gw..gw do
+        let (a, b) = centerOffset
+        let c = a/cellSize
+        let d = b/cellSize
+        let gh = gamePanel.Height/cellSize/2 + 1
+        let gw = gamePanel.Width/cellSize/2 + 1
+        for y in (-gh - d)..(gh - d) do
+            for x in (-gw - c)..(gw - c) do
                 let color =
                     if List.contains (x, y) gameState.cells
                     then cellColor ()
                     else Brushes.White
-                e.Graphics.FillRectangle(color,gamePanel.Width / 2 + cellSize * x - cellSize/2,gamePanel.Height / 2 + cellSize * y - cellSize/2,cellSize - 1,cellSize - 1)
+                e.Graphics.FillRectangle (
+                    color,
+                    gamePanel.Width / 2 + cellSize * x - cellSize/2 + a,
+                    gamePanel.Height / 2 + cellSize * y - cellSize/2 + b,
+                    cellSize - 1,
+                    cellSize - 1
+                    )
         )
 
     //IMPORTANT FUNCTION
@@ -41,18 +53,39 @@ let main1 argv =
         score.Text <- sprintf "Score: %d" gameState.score
         gamePanel.Refresh()
 
+    gamePanel.MouseDown.Add (fun e ->
+        mouseOffset <- Some (e.X, e.Y)
+        )
+
+    gamePanel.MouseMove.Add (fun e ->
+        let (c, d) = centerOffset
+        match mouseOffset with
+        |None -> ()
+        |Some (a, b) -> 
+            centerOffset <- (e.X - a + c, e.Y - b + d)
+            mouseOffset <- Some (e.X, e.Y)
+            gamePanel.Refresh()
+        )
+
     gamePanel.MouseUp.Add (fun e ->
-        let x = e.X - gamePanel.Width / 2
-        let y = e.Y - gamePanel.Height / 2
-        let newCell =  (int (round (float x / float cellSize))), (int (round (float y / float cellSize)))
-        setState {
-            cells = 
-                if List.contains newCell gameState.cells 
-                    then List.filter (fun x -> x <> newCell) gameState.cells 
-                    else newCell :: gameState.cells 
-            score = 0 
-            history = gameState.history
-            }
+        if dragStartCenterOffset = centerOffset
+        then
+            let (a, b) = centerOffset
+            let x = e.X - (a + gamePanel.Width / 2)
+            let y = e.Y - (b + gamePanel.Height / 2)
+            let newCell = (int (round (float x / float cellSize))), (int (round (float y / float cellSize)))
+            setState {
+                cells = 
+                    if List.contains newCell gameState.cells 
+                        then List.filter (fun x -> x <> newCell) gameState.cells 
+                        else newCell :: gameState.cells 
+                score = 0 
+                history = gameState.history
+                }
+        else 
+            dragStartCenterOffset <- centerOffset
+
+        mouseOffset <- None
         )
 
     // min 15 10  | |
