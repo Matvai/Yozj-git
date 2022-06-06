@@ -5940,52 +5940,41 @@
   var theBrain = require_theBrain();
   var $ = require_jquery();
   $("<div>").text("fluff crocodil").css({ color: "red" }).toggleClass("alive").appendTo(document.body);
-  var t = document.createElement("div");
-  t.innerText = "0";
-  document.body.appendChild(t);
+  var t = $("<div>").text("0").appendTo(document.body);
   function createCell(x2, y) {
     console.log("p*tin crocodil");
-    let c = document.createElement("div");
-    c.className = "cell";
-    c.onclick = function() {
-      if (c.classList.contains("alive"))
-        c.classList.remove("alive");
-      else
-        c.classList.add("alive");
-      t.innerText = allCells.filter((x3) => x3.cell.classList.contains("alive")).length;
-    };
+    let c = $("<div>").addClass("cell").on("click", function() {
+      c.toggleClass("alive");
+      t.text(allCells.filter((x3) => x3.cell.hasClass("alive")).length);
+    });
     return { cell: c, coords: { x: x2, y } };
   }
   function createRow(size, y) {
-    let r = document.createElement("div");
-    r.className = "row";
+    let r = $("<div>").addClass("row");
     let l = [];
     for (let a = 0; a < size; a = a + 1) {
       let x2 = createCell(a, y);
-      r.appendChild(x2.cell);
+      r.append(x2.cell);
       l.push(x2);
     }
     return { row: r, cells: l };
   }
   function createSquare(size) {
-    let s = document.createElement("div");
-    s.className = "kvadratik";
+    let s = $("<div>").addClass("kvadratik");
     let l = [];
     for (let a = 0; a < size; a = a + 1) {
       let x2 = createRow(size, a);
-      s.appendChild(x2.row);
+      s.append(x2.row);
       l = l.concat(x2.cells);
     }
     return { square: s, cells: l };
   }
   var x = createSquare(15);
   var allCells = x.cells;
-  document.body.appendChild(x.square);
-  console.log(allCells);
-  console.log(allCells.length);
+  x.square.appendTo(document.body);
   function getLiveCells(cells) {
     return cells.map((x2) => {
-      if (x2.cell.classList.contains("alive"))
+      if (x2.cell.hasClass("alive"))
         return x2.coords;
       else
         return null;
@@ -5994,9 +5983,9 @@
   function drawLiveCells(coordsList) {
     allCells.map((x2) => {
       if (coordsList.findIndex((z) => z.x == x2.coords.x && z.y == x2.coords.y) > -1) {
-        x2.cell.classList.add("alive");
+        x2.cell.addClass("alive");
       } else {
-        x2.cell.classList.remove("alive");
+        x2.cell.removeClass("alive");
       }
     });
   }

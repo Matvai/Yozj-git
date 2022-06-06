@@ -8,44 +8,37 @@ $("<div>")
     .toggleClass("alive")
     .appendTo(document.body)
 
-let t = document.createElement("div")
-t.innerText = "0"
-document.body.appendChild(t)
+let t = $("<div>").text("0").appendTo(document.body)
 
-let numberOfCells = 0
 
 function createCell (x, y) {
     console.log("p*tin crocodil")
-    let c = document.createElement("div")
-    c.className = "cell"
-    c.onclick = function() { 
-        if (c.classList.contains('alive'))
-            c.classList.remove('alive')
-            else c.classList.add('alive')
-        t.innerText = allCells.filter (x => x.cell.classList.contains('alive')).length
-    }
+    let c = $("<div>")
+        .addClass("cell")
+        .on("click", function() { 
+            c.toggleClass("alive")
+            t.text(allCells.filter (x => x.cell.hasClass("alive")).length)
+        })
     return { cell: c, coords: { x: x, y: y } }
 }
 
 function createRow (size, y) {
-    let r = document.createElement("div")
-    r.className = "row"
+    let r = $("<div>").addClass("row")
     let l = []
     for(let a = 0; a < size; a = a + 1) {
         let x = createCell(a, y)
-        r.appendChild(x.cell)
+        r.append(x.cell)
         l.push(x)
     }
     return { row: r, cells: l }
 }
 
 function createSquare (size) {
-    let s = document.createElement("div")
-    s.className = "kvadratik"
+    let s = $("<div>").addClass("kvadratik")
     let l = []
     for(let a = 0; a < size; a = a + 1) {
         let x = createRow(size, a)
-        s.appendChild(x.row)
+        s.append(x.row)
         l = l.concat(x.cells)
     }
     return { square: s, cells: l }
@@ -53,14 +46,12 @@ function createSquare (size) {
 
 let x = createSquare(15)
 let allCells = x.cells
-document.body.appendChild(x.square)
-console.log(allCells)
-console.log(allCells.length)
+x.square.appendTo(document.body)
 
 function getLiveCells(cells) {
     // TODO: implement this correctly
     return cells.map (x => {
-        if (x.cell.classList.contains('alive'))
+        if (x.cell.hasClass('alive'))
             return  x.coords
         else 
             return null
@@ -72,10 +63,10 @@ function getLiveCells(cells) {
 function drawLiveCells(coordsList) {
     allCells.map (x => {
         if (coordsList.findIndex(z => z.x == x.coords.x && z.y == x.coords.y) > -1) {
-            x.cell.classList.add('alive')
+            x.cell.addClass('alive')
         }
         else {
-            x.cell.classList.remove('alive')    
+            x.cell.removeClass('alive')    
         }
     })
 }
