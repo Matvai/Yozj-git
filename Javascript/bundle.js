@@ -5950,7 +5950,7 @@
     return { cell: c, coords: { x: x2, y } };
   }
   function createRow(size, y) {
-    let r = $("<div>").addClass("row");
+    let r = $("<div>").addClass("hocol");
     let l = [];
     for (let a = 0; a < size; a = a + 1) {
       let x2 = createCell(a, y);
@@ -5960,7 +5960,7 @@
     return { row: r, cells: l };
   }
   function createSquare(size) {
-    let s = $("<div>").addClass("kvadratik");
+    let s = $("<div>").addClass("kvadratik m-2");
     let l = [];
     for (let a = 0; a < size; a = a + 1) {
       let x2 = createRow(size, a);
@@ -5989,34 +5989,22 @@
       }
     });
   }
-  var btn = document.createElement("button");
-  btn.innerText = "Get live cells";
-  btn.onclick = function() {
-    console.log(getLiveCells(allCells));
-  };
-  document.body.appendChild(btn);
-  var bttn = document.createElement("button");
-  bttn.innerText = "Next Step";
-  bttn.onclick = function() {
-    drawLiveCells(theBrain.nextStep(getLiveCells(allCells)));
-  };
-  document.body.appendChild(bttn);
   var timer;
-  var btn2 = document.createElement("button");
-  btn2.innerText = "Stop";
-  btn2.onclick = function() {
+  $("<button>").text("Get live cells").on("click", function() {
+    console.log(getLiveCells(allCells));
+  }).appendTo(document.body).addClass("btn btn-primary m-2");
+  $("<button>").text("Next Step").on("click", function() {
+    drawLiveCells(theBrain.nextStep(getLiveCells(allCells)));
+  }).appendTo(document.body).addClass("btn btn-primary m-2");
+  $("<button>").text("Stop").on("click", function() {
     clearInterval(timer);
-  };
-  document.body.appendChild(btn2);
-  var btn3 = document.createElement("button");
-  btn3.innerText = "Start";
-  btn3.onclick = function() {
+  }).appendTo(document.body).addClass("btn btn-primary m-2");
+  $("<button>").text("Start").on("click", function() {
     clearInterval(timer);
     timer = setInterval(function() {
       drawLiveCells(theBrain.nextStep(getLiveCells(allCells)));
     }, 420);
-  };
-  document.body.appendChild(btn3);
+  }).appendTo(document.body).addClass("btn btn-primary m-2");
 })();
 /*!
  * jQuery JavaScript Library v3.6.0

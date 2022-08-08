@@ -23,7 +23,7 @@ function createCell (x, y) {
 }
 
 function createRow (size, y) {
-    let r = $("<div>").addClass("row")
+    let r = $("<div>").addClass("hocol")
     let l = []
     for(let a = 0; a < size; a = a + 1) {
         let x = createCell(a, y)
@@ -34,7 +34,7 @@ function createRow (size, y) {
 }
 
 function createSquare (size) {
-    let s = $("<div>").addClass("kvadratik")
+    let s = $("<div>").addClass("kvadratik m-2")
     let l = []
     for(let a = 0; a < size; a = a + 1) {
         let x = createRow(size, a)
@@ -57,9 +57,9 @@ function getLiveCells(cells) {
             return null
     } )
         .filter (x => x != null)
-    // return [{ x: 1, y: 2 }, { x: 3, y: 4 }]
+        // return [{ x: 1, y: 2 }, { x: 3, y: 4 }]
 }
-
+    
 function drawLiveCells(coordsList) {
     allCells.map (x => {
         if (coordsList.findIndex(z => z.x == x.coords.x && z.y == x.coords.y) > -1) {
@@ -70,30 +70,41 @@ function drawLiveCells(coordsList) {
         }
     })
 }
-let btn = document.createElement("button")
-btn.innerText = "Get live cells"
-btn.onclick = function() { console.log(getLiveCells(allCells)) }
-document.body.appendChild(btn)
-
-let bttn = document.createElement("button")
-bttn.innerText = "Next Step"
-bttn.onclick = function() { drawLiveCells(theBrain.nextStep(getLiveCells(allCells))) }
-document.body.appendChild(bttn)
 
 let timer
 
-let btn2 = document.createElement("button")
-btn2.innerText = "Stop"
-btn2.onclick = function() { clearInterval(timer) }
-document.body.appendChild(btn2)
+$("<button>")
+    .text("Get live cells")
+    .on("click", function() { 
+        console.log(getLiveCells(allCells))
+    })
+    .appendTo(document.body)
+    .addClass("btn btn-primary m-2")
 
-let btn3 = document.createElement("button")
-btn3.innerText = "Start"
-btn3.onclick = function() {
-    clearInterval(timer) 
-    timer = setInterval( 
-        function() { drawLiveCells(theBrain.nextStep(getLiveCells(allCells))) }, 
-        420
-    ) 
-}
-document.body.appendChild(btn3)
+$("<button>")
+    .text("Next Step")
+    .on("click", function() { 
+        drawLiveCells(theBrain.nextStep(getLiveCells(allCells))) 
+    })
+    .appendTo(document.body)
+    .addClass("btn btn-primary m-2")
+
+$("<button>")
+    .text("Stop")
+    .on("click", function() { 
+        clearInterval(timer) 
+    })
+    .appendTo(document.body)
+    .addClass("btn btn-primary m-2")
+
+$("<button>")
+    .text("Start")
+    .on("click", function() {
+        clearInterval(timer) 
+        timer = setInterval( 
+            function() { drawLiveCells(theBrain.nextStep(getLiveCells(allCells))) }, 
+            420
+        ) 
+    })
+    .appendTo(document.body)
+    .addClass("btn btn-primary m-2")

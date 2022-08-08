@@ -1,0 +1,18 @@
+.cell {
+    background: white;
+    width: 2rem;
+    height: 2rem;
+    border: solid 1px rgb(23, 131, 8);
+    border-color: red
+}
+.hocol {
+    display: flex;
+}
+.kvadratik {
+    display: flex;
+    flex-direction: column;
+
+}
+.alive {
+    background: black;
+}
