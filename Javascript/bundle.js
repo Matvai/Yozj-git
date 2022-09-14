@@ -5990,21 +5990,28 @@
     });
   }
   var timer;
-  $("<button>").text("Get live cells").on("click", function() {
+  function button(text, onClick) {
+    $("<button>").text(text).on("click", onClick).appendTo(document.body).addClass("btn btn-primary m-2");
+  }
+  function nextStep() {
+    let oldCells = getLiveCells(allCells);
+    let newCells = theBrain.nextStep(oldCells);
+    drawLiveCells(newCells);
+  }
+  button("Get live cells", function() {
     console.log(getLiveCells(allCells));
-  }).appendTo(document.body).addClass("btn btn-primary m-2");
-  $("<button>").text("Next Step").on("click", function() {
-    drawLiveCells(theBrain.nextStep(getLiveCells(allCells)));
-  }).appendTo(document.body).addClass("btn btn-primary m-2");
-  $("<button>").text("Stop").on("click", function() {
+  });
+  button("Next Step", nextStep);
+  button("Stop", function() {
     clearInterval(timer);
-  }).appendTo(document.body).addClass("btn btn-primary m-2");
-  $("<button>").text("Start").on("click", function() {
+  });
+  button("Start", function() {
     clearInterval(timer);
-    timer = setInterval(function() {
-      drawLiveCells(theBrain.nextStep(getLiveCells(allCells)));
-    }, 420);
-  }).appendTo(document.body).addClass("btn btn-primary m-2");
+    timer = setInterval(nextStep, 420);
+  });
+  button("Clear", function() {
+    drawLiveCells([]);
+  });
 })();
 /*!
  * jQuery JavaScript Library v3.6.0
