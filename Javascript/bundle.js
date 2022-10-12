@@ -14,7 +14,7 @@
       function deduplicate(list) {
         return list.filter((e, index) => {
           let i = list.findIndex((a) => a.x == e.x && a.y == e.y);
-          return i === index;
+          return i == index;
         });
       }
       function findAllNeighbors(cells) {
@@ -32,6 +32,13 @@
         }
         return n2;
       }
+      exports.toggleCell = function(coords, aliveCells2) {
+        if (aliveCells2.findIndex((a) => a.x == coords.x && a.y == coords.y) >= 0) {
+          return aliveCells2.filter((a) => a.x != coords.x || a.y != coords.y);
+        } else {
+          return aliveCells2.concat(coords);
+        }
+      };
       exports.nextStep = function(cells) {
         return findAllNeighbors(cells).map(function(x2) {
           switch (countNeighbors(x2, cells)) {
@@ -5944,8 +5951,7 @@
   function createCell(x2, y) {
     console.log("p*tin crocodil");
     let c = $("<div>").addClass("cell").on("click", function() {
-      c.toggleClass("alive");
-      t.text(allCells.filter((x3) => x3.cell.hasClass("alive")).length);
+      setState(theBrain.toggleCell({ x: x2, y }, aliveCells));
     });
     return { cell: c, coords: { x: x2, y } };
   }
@@ -5971,16 +5977,10 @@
   }
   var x = createSquare(15);
   var allCells = x.cells;
+  var aliveCells = [];
   x.square.appendTo(document.body);
-  function getLiveCells(cells) {
-    return cells.map((x2) => {
-      if (x2.cell.hasClass("alive"))
-        return x2.coords;
-      else
-        return null;
-    }).filter((x2) => x2 != null);
-  }
   function drawLiveCells(coordsList) {
+    console.log(coordsList);
     allCells.map((x2) => {
       if (coordsList.findIndex((z) => z.x == x2.coords.x && z.y == x2.coords.y) > -1) {
         x2.cell.addClass("alive");
@@ -5989,14 +5989,17 @@
       }
     });
   }
+  function setState(newAliveCells) {
+    aliveCells = newAliveCells;
+    drawLiveCells(aliveCells);
+    t.text(aliveCells.length);
+  }
   var timer;
   function button(text, onClick) {
     $("<button>").text(text).on("click", onClick).appendTo(document.body).addClass("btn btn-primary m-2");
   }
   function nextStep() {
-    let oldCells = getLiveCells(allCells);
-    let newCells = theBrain.nextStep(oldCells);
-    drawLiveCells(newCells);
+    setState(theBrain.nextStep(aliveCells));
   }
   button("Get live cells", function() {
     console.log(getLiveCells(allCells));
@@ -6010,7 +6013,7 @@
     timer = setInterval(nextStep, 420);
   });
   button("Clear", function() {
-    drawLiveCells([]);
+    setState([]);
   });
 })();
 /*!

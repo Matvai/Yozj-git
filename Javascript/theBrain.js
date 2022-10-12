@@ -20,7 +20,7 @@ function findNeighbors (cell) {
 function deduplicate (list) {
     return list.filter((e, index) => {
         let i = (list.findIndex ((a) => a.x == e.x && a.y == e.y))
-        return i === index;
+        return i == index;
     });
 }
 
@@ -37,6 +37,15 @@ function countNeighbors(cell, cells) {
         }
     }
     return n
+}
+
+exports.toggleCell = function (coords, aliveCells) {
+    if (aliveCells.findIndex ((a) => a.x == coords.x && a.y == coords.y) >= 0) {
+        return aliveCells.filter((a) => a.x != coords.x || a.y != coords.y)
+    }
+    else {
+        return aliveCells.concat(coords)
+    }
 }
 
 exports.nextStep = function (cells) {

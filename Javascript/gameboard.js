@@ -16,8 +16,7 @@ function createCell (x, y) {
     let c = $("<div>")
         .addClass("cell")
         .on("click", function() { 
-            c.toggleClass("alive")
-            t.text(allCells.filter (x => x.cell.hasClass("alive")).length)
+            setState(theBrain.toggleCell({ x, y }, aliveCells))
         })
     return { cell: c, coords: { x: x, y: y } }
 }
@@ -46,21 +45,11 @@ function createSquare (size) {
 
 let x = createSquare(15)
 let allCells = x.cells
+let aliveCells = []
 x.square.appendTo(document.body)
 
-function getLiveCells(cells) {
-    // TODO: implement this correctly
-    return cells.map (x => {
-        if (x.cell.hasClass('alive'))
-            return  x.coords
-        else 
-            return null
-    } )
-        .filter (x => x != null)
-        // return [{ x: 1, y: 2 }, { x: 3, y: 4 }]
-}
-    
 function drawLiveCells(coordsList) {
+    console.log(coordsList)
     allCells.map (x => {
         if (coordsList.findIndex(z => z.x == x.coords.x && z.y == x.coords.y) > -1) {
             x.cell.addClass('alive')
@@ -69,6 +58,12 @@ function drawLiveCells(coordsList) {
             x.cell.removeClass('alive')    
         }
     })
+}
+
+function setState(newAliveCells) {
+    aliveCells = newAliveCells
+    drawLiveCells(aliveCells)
+    t.text(aliveCells.length)
 }
 
 let timer
@@ -82,9 +77,7 @@ function button(text, onClick) {
 }
 
 function nextStep() {
-    let oldCells = getLiveCells(allCells)
-    let newCells = theBrain.nextStep(oldCells)
-    drawLiveCells(newCells)
+    setState(theBrain.nextStep(aliveCells))
 }
 
 button("Get live cells", function() { 
@@ -105,6 +98,6 @@ button("Start", function() {
     ) 
 })
 
-button("Clear", function() { 
-        drawLiveCells([])
+button("Clear", function() {
+        setState([])
 })
