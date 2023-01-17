@@ -28479,62 +28479,163 @@
     }
   });
 
+  // theBrain.js
+  var require_theBrain = __commonJS({
+    "theBrain.js"(exports) {
+      function findNeighbors(cell) {
+        let arr = [-1, 0, 1];
+        return arr.map((a) => arr.map((b) => ({ x: cell.x + a, y: cell.y + b }))).flat();
+      }
+      function deduplicate(list) {
+        return list.filter((e, index) => {
+          let i = list.findIndex((a) => a.x == e.x && a.y == e.y);
+          return i == index;
+        });
+      }
+      function findAllNeighbors(cells) {
+        return deduplicate(cells.map((x) => findNeighbors(x)).flat());
+      }
+      function countNeighbors(cell, cells) {
+        let n2 = 0;
+        for (let a = -1; a < 2; a = a + 1) {
+          for (let b = -1; b < 2; b = b + 1) {
+            if (!(a == 0 && b == 0) && cells.some(function(r) {
+              return r.x == cell.x + a && r.y == cell.y + b;
+            }))
+              n2 = n2 + 1;
+          }
+        }
+        return n2;
+      }
+      exports.toggleCell = function(coords, aliveCells) {
+        if (aliveCells.findIndex((a) => a.x == coords.x && a.y == coords.y) >= 0) {
+          return aliveCells.filter((a) => a.x != coords.x || a.y != coords.y);
+        } else {
+          return aliveCells.concat(coords);
+        }
+      };
+      exports.nextStep = function(cells) {
+        return findAllNeighbors(cells).map(function(x) {
+          switch (countNeighbors(x, cells)) {
+            case 2: {
+              if (cells.findIndex((a) => a.x == x.x && a.y == x.y) >= 0)
+                return x;
+              else
+                return null;
+            }
+            case 3:
+              return x;
+            default:
+              return null;
+          }
+        }).filter((z) => z != null);
+      };
+    }
+  });
+
   // gameboard.js
   var { extend } = require_jquery();
   var React = require_react();
   var ReactDOM = require_react_dom();
+  var { toggleCell } = require_theBrain();
+  var { nextStep } = require_theBrain();
   var root = document.createElement("div");
   document.body.appendChild(root);
-  var xx = /* @__PURE__ */ React.createElement("i", {
-    className: "bg-info"
-  }, "Here");
-  var Counter = class extends React.Component {
-    state = { count: 0 };
-    render() {
-      return /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("b", null, "The count is: ", this.state.count), xx, /* @__PURE__ */ React.createElement("button", {
-        className: "btn btn-primary",
-        onClick: () => this.setState({ count: this.state.count + 1 })
-      }, "Click me!"), /* @__PURE__ */ React.createElement("button", {
-        className: "btn btn-primary",
-        onClick: () => this.setState({ count: this.state.count - 1 })
-      }, "Click me too!"), /* @__PURE__ */ React.createElement("button", {
-        className: "btn btn-primary",
-        onClick: () => this.setState({ count: 0 })
-      }, "Reset!"), /* @__PURE__ */ React.createElement("button", {
-        className: "btn btn-primary",
-        onClick: () => this.setState({ count: 42 })
-      }, "42"));
-    }
-  };
-  var Yozj = class extends React.Component {
+  function listContainsCoords(list, coords) {
+    return list.findIndex((a) => a.x == coords.x && a.y == coords.y) >= 0;
+  }
+  var Game = class extends React.Component {
+    state = {
+      liveCells: [{ x: 1, y: 3 }, { x: 2, y: 4 }, { x: 3, y: 4 }, { x: 4, y: 4 }, { x: 5, y: 3 }, { x: 2, y: 1 }, { x: 4, y: 1 }],
+      cellColor: "bg-danger"
+    };
     render() {
       return /* @__PURE__ */ React.createElement("div", {
-        className: "bg-danger"
-      }, Array(10).fill().map(() => /* @__PURE__ */ React.createElement(Counter, null)), /* @__PURE__ */ React.createElement(Murch, {
-        color: "success"
-      }), /* @__PURE__ */ React.createElement(Murch, {
-        color: "info"
+        className: "bg-white"
+      }, /* @__PURE__ */ React.createElement(Grid, {
+        liveCells: this.state.liveCells,
+        cellColor: this.state.cellColor,
+        onLiveCellsChanged: (coords) => this.setState({ liveCells: toggleCell(coords, this.state.liveCells) })
+      }), /* @__PURE__ */ React.createElement(NextStep, {
+        liveCells: this.state.liveCells,
+        onNextStep: () => this.setState({ liveCells: nextStep(this.state.liveCells) })
+      }), /* @__PURE__ */ React.createElement("button", {
+        className: "btn btn-success",
+        onClick: () => this.setState({ liveCells: [] })
+      }, "Clear"), /* @__PURE__ */ React.createElement(ToggleCellColor, {
+        onCellColorChanged: () => {
+          switch (this.state.cellColor) {
+            case "bg-danger":
+              this.setState({ cellColor: "bg-warning" });
+              break;
+            case "bg-warning":
+              this.setState({ cellColor: "bg-success" });
+              break;
+            case "bg-success":
+              this.setState({ cellColor: "bg-primary" });
+              break;
+            default:
+              this.setState({ cellColor: "bg-danger" });
+          }
+        }
       }));
     }
   };
-  var Murch = class extends React.Component {
-    state = { hello: true };
+  var ToggleCellColor = class extends React.Component {
     render() {
-      let hello;
-      if (this.state.hello) {
-        hello = "Hello";
-      } else {
-        hello = "Goodbye";
-      }
-      return /* @__PURE__ */ React.createElement("div", {
-        className: "bg-" + this.props.color
-      }, hello, /* @__PURE__ */ React.createElement("button", {
+      return /* @__PURE__ */ React.createElement("button", {
         className: "btn btn-success",
-        onClick: () => this.setState({ hello: !this.state.hello })
-      }, "Toggle"));
+        onClick: this.props.onCellColorChanged
+      }, "Toggle Cell Color");
     }
   };
-  ReactDOM.render(/* @__PURE__ */ React.createElement(Yozj, null), root);
+  var Square = class extends React.Component {
+    render() {
+      let cellColor;
+      if (listContainsCoords(this.props.liveCells, this.props.coords)) {
+        cellColor = this.props.cellColor;
+      } else {
+        cellColor = "bg-white";
+      }
+      return /* @__PURE__ */ React.createElement("div", {
+        style: { width: "50px", height: "50px" },
+        className: cellColor + " border",
+        onClick: () => this.props.onLiveCellsChanged(this.props.coords)
+      });
+    }
+  };
+  var array10 = Array(10);
+  var Row = class extends React.Component {
+    render() {
+      return /* @__PURE__ */ React.createElement("div", {
+        className: "d-flex"
+      }, array10.fill().map((_, i) => /* @__PURE__ */ React.createElement(Square, {
+        liveCells: this.props.liveCells,
+        cellColor: this.props.cellColor,
+        coords: { x: i, y: this.props.row },
+        onLiveCellsChanged: this.props.onLiveCellsChanged
+      })));
+    }
+  };
+  var Grid = class extends React.Component {
+    render() {
+      return /* @__PURE__ */ React.createElement("div", null, array10.fill().map((_, i) => /* @__PURE__ */ React.createElement(Row, {
+        liveCells: this.props.liveCells,
+        cellColor: this.props.cellColor,
+        row: i,
+        onLiveCellsChanged: this.props.onLiveCellsChanged
+      })));
+    }
+  };
+  var NextStep = class extends React.Component {
+    render() {
+      return /* @__PURE__ */ React.createElement("button", {
+        className: "btn btn-success",
+        onClick: this.props.onNextStep
+      }, "Next step");
+    }
+  };
+  ReactDOM.render(/* @__PURE__ */ React.createElement(Game, null), root);
 })();
 /*!
  * jQuery JavaScript Library v3.6.0
