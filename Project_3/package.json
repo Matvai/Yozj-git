@@ -1,0 +1,17 @@
+{
+  "type": "module",
+  "dependencies": {
+    "esbuild": "^0.17.15",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "name": "project_3",
+  "version": "1.0.0",
+  "main": "program.js",
+  "scripts": {
+    "watch": "esbuild program.jsx --outfile=out.js --bundle --watch"
+  },
+  "author": "Yozj",
+  "license": "ISC",
+  "description": ""
+}
