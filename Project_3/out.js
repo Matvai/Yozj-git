@@ -23502,8 +23502,47 @@
       );
     }
   };
+  var Square = class extends import_react.default.Component {
+    render() {
+      let cellColor;
+      if (listContainsCoords(this.props.liveCells, this.props.coords)) {
+        cellColor = "bg-danger";
+      } else {
+        cellColor = "bg-white";
+      }
+      return /* @__PURE__ */ import_react.default.createElement(
+        "div",
+        {
+          style: { width: "50px", height: "50px" },
+          className: cellColor + " border"
+        }
+      );
+    }
+  };
+  var Row = class extends import_react.default.Component {
+    render() {
+      return /* @__PURE__ */ import_react.default.createElement("div", { className: "d-flex" }, array10.fill().map((_, i) => /* @__PURE__ */ import_react.default.createElement(
+        Square,
+        {
+          liveCells: this.props.liveCells,
+          coords: { x: i, y: this.props.row }
+        }
+      )));
+    }
+  };
+  var Grid = class extends import_react.default.Component {
+    render() {
+      return /* @__PURE__ */ import_react.default.createElement("div", null, array10.fill().map((_, i) => /* @__PURE__ */ import_react.default.createElement(
+        Row,
+        {
+          liveCells: this.props.liveCells,
+          row: i
+        }
+      )));
+    }
+  };
   var Facts = class extends import_react.default.Component {
-    state = { value: "type any fact here", text: "click for facts" };
+    state = { value: "type any fact here", text: "click for facts", liveCells: [{ x: 1, y: 3 }] };
     render() {
       return /* @__PURE__ */ import_react.default.createElement("div", null, /* @__PURE__ */ import_react.default.createElement(
         Textbox,
@@ -23516,6 +23555,11 @@
         {
           text: this.state.text,
           handleChange: (_) => this.setState({ text: this.state.value })
+        }
+      ), /* @__PURE__ */ import_react.default.createElement(
+        Grid,
+        {
+          liveCells: this.state.liveCells
         }
       ));
     }

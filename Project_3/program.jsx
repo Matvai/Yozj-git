@@ -22,8 +22,44 @@ class Button extends React.Component {
     }
 }
 
+class Square extends React.Component { 
+    render() {
+        let cellColor
+        if (listContainsCoords(this.props.liveCells, this.props.coords))
+            { cellColor = "bg-danger" } 
+            else { cellColor = "bg-white" }
+
+        return <div 
+            style={{ width: "50px", height: "50px",}} 
+            className={cellColor + " border"}>
+        </div>
+    }
+}
+
+class Row extends React.Component {
+    render () {
+        return <div className="d-flex">
+            {array10.fill().map((_, i) => <Square 
+                liveCells={this.props.liveCells}
+                coords={{ x: i, y: this.props.row }}>
+            </Square>)}
+        </div>
+    }
+}
+
+class Grid extends React.Component {
+    render () {
+        return <div>
+            {array10.fill().map((_, i) => <Row 
+                liveCells={this.props.liveCells}
+                row={i}>
+            </Row>)}
+        </div>
+    }
+}
+
 class Facts extends React.Component {
-    state = {value: "type any fact here", text: "click for facts"}
+    state = {value: "type any fact here", text: "click for facts", liveCells: [ {x: 1, y: 3}]}
     render() {
         return <div>
             <Textbox
@@ -34,6 +70,9 @@ class Facts extends React.Component {
                 text = {this.state.text}
                 handleChange = {_ => this.setState({text: this.state.value})}>
             </Button>
+            <Grid
+                liveCells={this.state.liveCells}>
+            </Grid>
         </div>
     }
 }
